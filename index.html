@@ -1,0 +1,2079 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GM Collection — Ticarət İdarəetmə v6</title>
+<meta name="description" content="Satış, alış, stok və maliyyə nəzarəti">
+<meta name="theme-color" content="#1769aa">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GM Collection">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgcng9IjM4IiBmaWxsPSIjMTc2OWFhIi8+PHRleHQgeD0iOTYiIHk9IjEyNSIgZm9udC1zaXplPSI4MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+R008L3RleHQ+PC9zdmc+">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<style>
+/* Mobil overflow problemi */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+.main {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+/* Header — cədvəl genişliyinə uyğun uzanmasın */
+.top {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 50;
+  max-width: 100%;
+}
+@media(max-width:650px){
+  .top {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px;
+  }
+  .top > div:last-child {
+    width: 100%;
+    justify-content: flex-start !important;
+  }
+  .top h1 {
+    font-size: 20px !important;
+  }
+  .main {
+    padding: 12px !important;
+    overflow-x: hidden;
+  }
+}
+@media(max-width:650px){
+  .tablewrap {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .table {
+    font-size: 11px;
+  }
+  .table th, .table td {
+    padding: 5px 6px !important;
+    font-size: 11px !important;
+  }
+}
+:root{--bg:#f4f6f9;--card:#fff;--text:#17202a;--muted:#667085;--line:#e5e7eb;--pri:#1769aa;--pri2:#0d4f82;--ok:#16834b;--warn:#b7791f;--bad:#c53030}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:9px;padding:10px 14px;background:var(--pri);color:#fff}button:hover{background:var(--pri2)}
+.app{display:flex;min-height:100vh}.side{width:240px;background:#102a43;color:#fff;padding:18px 12px;position:fixed;inset:0 auto 0 0;overflow-y:auto}.brand{font-size:23px;font-weight:800;padding:8px 10px 20px}.brand small{display:block;font-size:11px;color:#9fb3c8;margin-top:4px}
+.nav button{display:block;width:100%;text-align:left;background:transparent;color:#d9e2ec;margin:3px 0}.nav button.active,.nav button:hover{background:#243b53}
+.main{margin-left:240px;width:calc(100% - 240px);padding:22px;max-width:1600px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.top h1{margin:0;font-size:25px}.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:16px;box-shadow:0 2px 8px #102a4308}.metric .label{font-size:12px;color:var(--muted)}.metric .num{font-size:23px;font-weight:800;margin-top:7px}.green{color:var(--ok)}.red{color:var(--bad)}.yellow{color:var(--warn)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:13px;padding:16px;margin-bottom:16px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:13px}.toolbar input,.toolbar select,.form input,.form select,.form textarea{border:1px solid #cfd6df;border-radius:8px;padding:9px;background:#fff}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}.table{width:100%;border-collapse:collapse}.table th,.table td{border:1px solid var(--line);padding:9px 10px;text-align:left;white-space:nowrap}.table th{background:#f0f4f8;font-size:12px;font-weight:700;position:sticky;top:0;z-index:1}.table tbody tr:hover{background:#f8fafc}.table td input,.table td select{width:100%;border:1px solid #d8dee6;padding:7px;border-radius:6px}
+.formgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}.field input,.field select{width:100%}.wide{grid-column:span 2}
+.actions{display:flex;gap:7px;justify-content:flex-end;margin-top:13px}.secondary{background:#64748b}.danger{background:#c53030}.success{background:#16834b}.light{background:#e8eef5;color:#17324d}.warn{background:#b7791f}
+.badge{padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#edf2f7}.badge.bad{background:#fff5f5;color:#c53030}.badge.ok{background:#f0fff4;color:#16834b}.badge.warn{background:#fffaf0;color:#b7791f}
+.modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:18px;z-index:100}.modal.show{display:flex}.modalbox{background:#fff;width:min(1050px,100%);max-height:92vh;overflow:auto;border-radius:15px;padding:20px}.modalhead{display:flex;justify-content:space-between;align-items:center}.modalhead h2{margin:0 0 15px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}.tabs button{background:#e8eef5;color:#17324d}.tabs button.active{background:var(--pri);color:#fff}
+.hide{display:none!important}
+.search-overlay{position:fixed;inset:0;background:#000a;display:none;align-items:flex-start;justify-content:center;padding:80px 18px;z-index:200}.search-overlay.show{display:flex}
+.search-box{background:#fff;width:min(700px,100%);border-radius:14px;padding:20px;box-shadow:0 20px 60px #0006}
+.search-box input{width:100%;padding:14px;font-size:17px;border:2px solid var(--pri);border-radius:10px;outline:none}
+.search-results{margin-top:14px;max-height:60vh;overflow:auto}
+.search-item{padding:10px 12px;border-radius:8px;cursor:pointer;border-bottom:1px solid var(--line)}.search-item:hover{background:#f0f6ff}
+.search-item .tt{font-weight:700}.search-item .ss{font-size:12px;color:var(--muted)}
+.qr-box{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.chart-wrap{position:relative;height:280px}
+.code-wrap{position:relative}
+.code-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:8px;max-height:240px;overflow:auto;z-index:50;box-shadow:0 8px 24px #0002;display:none;margin-top:2px}
+.code-dropdown.show{display:block}
+.code-option{padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f4f8}
+.code-option:last-child{border-bottom:0}
+.code-option:hover,.code-option.active{background:#e8f1fa}
+.code-option .co-code{font-weight:700;color:var(--pri)}
+.code-option .co-name{color:var(--muted);margin-left:8px}
+.code-option .co-empty{padding:10px 12px;color:var(--muted);font-size:13px}
+.toast{position:fixed;bottom:24px;right:24px;background:#102a43;color:#fff;padding:14px 20px;border-radius:10px;box-shadow:0 10px 30px #0004;display:none;z-index:300;font-weight:600}
+.toast.show{display:block;animation:slideIn .3s}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@media(max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:1fr}.formgrid{grid-template-columns:repeat(2,1fr)}.side{width:205px}.main{margin-left:205px;width:calc(100% - 205px)}}
+@media(max-width:650px){.app{display:block}.side{position:static;width:100%;padding:8px}.brand{padding:8px}.nav{display:flex;overflow:auto}.nav button{min-width:max-content;width:auto}.main{margin:0;width:100%;padding:12px}.grid{grid-template-columns:1fr 1fr}.grid-2{grid-template-columns:1fr}.formgrid{grid-template-columns:1fr}.wide{grid-column:auto}.top{align-items:flex-start}.table th,.table td{padding:7px;font-size:12px}}
+@media print{
+  .side,.top,.no-print{display:none!important}
+  .main{margin:0;width:100%;padding:0}
+  .print-area{display:block!important}
+  .panel{border:0;box-shadow:none}
+  @page { margin: 10mm; size: A4; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+.print-area{display:none}
+/* Netlify banner gizlət */
+a[href*="netlify.com"],
+iframe[src*="netlify"],
+[class*="netlify-badge"],
+[id*="netlify-badge"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
+}
+/* Sıralama dropdown */
+.sort-dropdown{padding:8px 12px;border:1px solid #cfd6df;border-radius:8px;background:#fff;cursor:pointer;font-weight:600;color:#1769aa}
+.sort-dropdown:hover{background:#f0f6ff}
+/* Sol menyu sıralama bölməsi */
+.nav-sort{margin:12px 0;padding:10px 12px;background:#1a3550;border-radius:8px}
+.nav-sort-title{font-size:11px;color:#9fb3c8;font-weight:700;margin-bottom:8px;text-transform:uppercase}
+.nav-sort button{display:block;width:100%;text-align:left;background:transparent;color:#d9e2ec;padding:6px 8px;margin:2px 0;font-size:12px;border-radius:6px}
+.nav-sort button:hover,.nav-sort button.active{background:#243b53}
+/* Sıralana bilən sütun başlığı */
+th.sortable{cursor:pointer;user-select:none;position:relative;padding-right:24px !important}
+th.sortable:hover{background:#e8f1fa}
+th.sortable::after{content:'⇅';position:absolute;right:8px;opacity:.4;font-size:12px}
+th.sortable.sort-asc::after{content:'↑';opacity:1;color:#1769aa}
+th.sortable.sort-desc::after{content:'↓';opacity:1;color:#1769aa}
+/* Powered by Netlify gizlət */
+a[href*="netlify.com"],
+iframe[src*="netlify"],
+[class*="netlify-badge"],
+[id*="netlify-badge"],
+a[href*="netlify.app"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
+.side{max-width:100vw!important;overflow-x:hidden!important}
+.nav{display:flex!important;flex-wrap:wrap!important;gap:4px!important;max-width:100%!important}
+.nav button{width:auto!important;min-width:auto!important;padding:6px 8px!important;font-size:11px!important;margin:0!important}
+</style>
+</head>
+<body>
+<div id="pwa-install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#102a43;color:#fff;padding:14px 18px;z-index:500;box-shadow:0 -4px 12px #0003;align-items:center;justify-content:space-between;gap:12px;font-family:Inter,Segoe UI,Arial,sans-serif">
+  <div>
+    <div style="font-weight:700;font-size:14px">📱 Tətbiqi quraşdır</div>
+    <div style="font-size:12px;color:#9fb3c8;margin-top:2px">Ana ekrana əlavə edin — app kimi işləsin</div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button onclick="installPWA()" style="background:#16834b;color:#fff;border:0;padding:9px 14px;border-radius:8px;font-weight:700;cursor:pointer">Quraşdır</button>
+    <button onclick="document.getElementById('pwa-install-banner').style.display='none';localStorage.setItem('pwa_dismissed','1')" style="background:transparent;color:#9fb3c8;border:0;padding:9px;cursor:pointer">✕</button>
+  </div>
+</div>
+<div class="app">
+<aside class="side">
+ <div class="brand">GM Collection <small> • Ticarət idarəetmə v6</small></div>
+ <div class="nav" id="nav"></div>
+</aside>
+<main class="main">
+ <div class="top"><div><h1 id="title">İdarə paneli</h1><div class="muted" id="subtitle">Satış, alış, stok və maliyyə nəzarəti</div></div>
+ <div class="no-print" style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end">
+  <button class="light" onclick="openSearch()" title="Ctrl+K">🔍 Axtar</button>
+  <button class="light" onclick="syncNow()" title="Bulud ilə sinxron et">🔄 Sinxron et</button>
+  <button class="success" onclick="backup()">💾 Backup</button>
+  <button class="light" onclick="document.getElementById('restoreFile').click()">📥 Bərpa</button>
+  <input id="restoreFile" type="file" accept="application/json,.json" style="display:none" onchange="restore(this)">
+  <button onclick="openInvoice()">🧾 Yeni qaimə</button>
+ </div></div>
+ <section id="view"></section>
+</main>
+</div>
+
+<div class="modal" id="modal"><div class="modalbox"><div class="modalhead"><h2 id="modalTitle"></h2><button class="danger" onclick="closeModal()">Bağla</button></div><div id="modalBody"></div></div></div>
+<div class="search-overlay" id="searchOverlay"><div class="search-box">
+  <input id="globalSearchInput" placeholder="Məhsul, müştəri, təchizatçı, qaimə axtar..." oninput="runSearch(this.value)" autocomplete="off">
+  <div class="search-results" id="searchResults"></div>
+</div></div>
+<div class="toast" id="toast"></div>
+<div id="print" class="print-area"></div>
+
+<script>
+// ============ SIRALAMA SİSTEMİ ============
+let sortState = {
+  products: { field: 'verilmeTarixi', dir: 'desc' },
+  invoices: { field: 'date', dir: 'desc' },
+  customers: { field: 'name', dir: 'asc' },
+  suppliers: { field: 'name', dir: 'asc' }
+};
+function sortData(arr, field, dir){
+  if(!arr || !arr.length) return arr;
+  return arr.slice().sort((a,b) => {
+    let va = a[field] ?? '';
+    let vb = b[field] ?? '';
+    if(typeof va === 'number' && typeof vb === 'number'){
+      return dir === 'asc' ? va - vb : vb - va;
+    }
+    va = String(va).toLowerCase();
+    vb = String(vb).toLowerCase();
+    if(!va && !vb) return 0;
+    if(!va) return 1;
+    if(!vb) return -1;
+    return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+}
+function setSort(section, field){
+  const cur = sortState[section];
+  if(cur.field === field) cur.dir = cur.dir === 'asc' ? 'desc' : 'asc';
+  else { cur.field = field; cur.dir = 'asc'; }
+  render();
+}
+function setSortField(section, field, dir){
+  sortState[section] = { field, dir };
+  render();
+}
+// ============ SIRALAMA SON ============
+function sortData(arr, field, dir){
+  if(!arr || !arr.length) return arr;
+  return arr.slice().sort((a,b) => {
+    let va = a[field] ?? '';
+    let vb = b[field] ?? '';
+    const numA = parseFloat(va);
+    const numB = parseFloat(vb);
+    if(!isNaN(numA) && !isNaN(numB) && typeof va !== 'string'){
+      return dir === 'asc' ? numA - numB : numB - numA;
+    }
+    va = String(va).toLowerCase();
+    vb = String(vb).toLowerCase();
+    if(!va && !vb) return 0;
+    if(!va) return 1;
+    if(!vb) return -1;
+    return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+}
+function setSort(section, field){
+  const cur = sortState[section];
+  if(cur.field === field) cur.dir = cur.dir === 'asc' ? 'desc' : 'asc';
+  else { cur.field = field; cur.dir = 'asc'; }
+  render();
+}
+function setSortField(section, field, dir){
+  sortState[section] = { field, dir };
+  render();
+}
+// ============ SIRALAMA SON ============
+// ============ PWA QURAŞDIRMA ============
+// ============ PWA QURAŞDIRMA ============
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if(!localStorage.getItem('pwa_dismissed')){
+    const banner = document.getElementById('pwa-install-banner');
+    if(banner) banner.style.display = 'flex';
+  }
+});
+function installPWA(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(choice => {
+      if(choice.outcome === 'accepted'){
+        console.log('PWA quraşdırıldı');
+        const banner = document.getElementById('pwa-install-banner');
+        if(banner) banner.style.display = 'none';
+      }
+      deferredPrompt = null;
+    });
+  } else {
+    alert('iPhone-da: Safari-də Paylaş → "Ana ekrana əlavə et" seçin');
+  }
+}
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log('Service Worker qeydiyyatdan keçdi:', reg.scope))
+      .catch(err => console.warn('Service Worker xətası:', err));
+  });
+}
+// ============ PWA SON ============
+// ============ SUPABASE SINXRON (v2 - Təkmilləşdirilmiş) ============
+const SUPABASE_URL = 'https://polshhnnxpdnlruxgqfw.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_NkXeFxC1Eg_PcJy36QYzPg_eN4OgpcY';
+const SYNC_ROW_ID = 1;
+let supabaseClient = null;
+let syncEnabled = false;
+let syncInProgress = false;
+let lastCloudUpdate = 0;
+
+function initSupabase(){
+  try{
+    if(typeof supabase === 'undefined'){
+      console.warn('Supabase kitabxanası yüklənmədi');
+      return false;
+    }
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    syncEnabled = true;
+    console.log('✅ Supabase qoşuldu');
+    return true;
+  } catch(e){
+    console.warn('Supabase qoşulma xətası:', e);
+    return false;
+  }
+}
+
+// Local məlumatın son dəyişmə vaxtını yenilə
+function touchLocal(){
+  if(!db) return;
+  db._lastModified = Date.now();
+  localStorage.setItem(KEY, JSON.stringify(db));
+}
+
+async function pushToCloud(){
+  if(!syncEnabled || !supabaseClient || syncInProgress) return false;
+  try{
+    syncInProgress = true;
+    touchLocal(); // vaxtı yenilə
+
+    const { error } = await supabaseClient
+      .from('biznespro_data')
+      .update({ 
+        data: db, 
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', SYNC_ROW_ID);
+
+    if(error){
+      console.warn('Buluda yazma xətası:', error.message);
+      updateSyncIndicator('⚠ Yazma xətası', true);
+      return false;
+    } else {
+      lastCloudUpdate = Date.now();
+      updateSyncIndicator('✓ Sinxron');
+      return true;
+    }
+  } catch(e){
+    console.warn('Sync xətası:', e);
+    updateSyncIndicator('⚠ Xəta', true);
+    return false;
+  } finally {
+    syncInProgress = false;
+  }
+}
+
+async function pullFromCloud(showAlert = false){
+  if(!syncEnabled || !supabaseClient) return null;
+  try{
+    const { data, error } = await supabaseClient
+      .from('biznespro_data')
+      .select('data, updated_at')
+      .eq('id', SYNC_ROW_ID)
+      .single();
+
+    if(error){
+      console.warn('Buluddan oxuma xətası:', error.message);
+      if(showAlert) updateSyncIndicator('⚠ Oxuma xətası', true);
+      return null;
+    }
+
+    if(!data || !data.data) return null;
+
+    const cloudData = data.data;
+    const cloudTime = new Date(data.updated_at).getTime();
+
+    // Boşluq yoxlamaları
+    const isCloudEmpty = !cloudData.products || 
+      (cloudData.products.length === 0 && 
+       (cloudData.invoices||[]).length === 0 && 
+       (cloudData.customers||[]).length === 0);
+
+    let localData = null;
+    try {
+      const raw = localStorage.getItem(KEY);
+      if(raw) localData = JSON.parse(raw);
+    } catch(e){}
+
+    const isLocalEmpty = !localData || 
+      ((localData.products||[]).length === 0 && 
+       (localData.invoices||[]).length === 0 && 
+       (localData.customers||[]).length === 0);
+
+    // Vəziyyət 1: Bulud boş, local dolu → local-ı buluda yüklə
+    if(isCloudEmpty && !isLocalEmpty){
+      console.log('⚠️ Bulud boşdur — localStorage-dan yüklənir');
+      db = localData;
+      ensureDbStructure();
+      await pushToCloud();
+      updateSyncIndicator('✓ Bulud bərpa olundu');
+      render();
+      return db;
+    }
+
+    // Vəziyyət 2: Local boş, bulud dolu → buluddan yüklə
+    if(!isCloudEmpty && isLocalEmpty){
+      console.log('☁️ Buluddan yüklənir');
+      db = cloudData;
+      ensureDbStructure();
+      localStorage.setItem(KEY, JSON.stringify(db));
+      lastCloudUpdate = cloudTime;
+      updateSyncIndicator('✓ Buluddan yükləndi');
+      render();
+      return db;
+    }
+
+    // Vəziyyət 3: Hər ikisi dolu → hansı daha yenidirsə onu götür
+    if(!isCloudEmpty && !isLocalEmpty){
+      const localTime = localData._lastModified || 0;
+
+      // Bulud daha yenidirsə → götür
+      if(cloudTime > lastCloudUpdate && cloudTime > localTime + 2000){ // 2 saniyə ehtiyat
+        console.log('☁️ Bulud daha yenidir — yenilənir');
+        db = cloudData;
+        ensureDbStructure();
+        localStorage.setItem(KEY, JSON.stringify(db));
+        lastCloudUpdate = cloudTime;
+        updateSyncIndicator('✓ Buluddan yeniləndi');
+        render();
+        return db;
+      }
+
+      // Local daha yenidirsə → buluda göndər
+      if(localTime > cloudTime + 2000){
+        console.log('📱 Local daha yenidir — buluda göndərilir');
+        db = localData;
+        ensureDbStructure();
+        await pushToCloud();
+        return db;
+      }
+
+      // Eyni vəziyyətdədirsə heç nə etmə
+      return null;
+    }
+
+    return null;
+  } catch(e){
+    console.warn('Pull xətası:', e);
+    if(showAlert) updateSyncIndicator('⚠ Xəta', true);
+    return null;
+  }
+}
+
+function ensureDbStructure(){
+  if(!db.actualStock) db.actualStock = {};
+  if(!db.stockLog) db.stockLog = [];
+  if(!db.categories) db.categories = [];
+  if(!db.returns) db.returns = [];
+  if(!db.settings) db.settings = {company:'BiznesPro',currency:'AZN'};
+  if(!db._lastModified) db._lastModified = Date.now();
+}
+
+function updateSyncIndicator(text, isError = false){
+  let el = document.getElementById('syncIndicator');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'syncIndicator';
+    el.style.cssText = 'position:fixed;bottom:24px;left:24px;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;z-index:400;opacity:0;transition:opacity .3s;font-family:Inter,Segoe UI,Arial,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.15)';
+    document.body.appendChild(el);
+  }
+  el.textContent = text;
+  el.style.background = isError ? '#dc2626' : '#16834b';
+  el.style.color = '#fff';
+  el.style.opacity = '1';
+  clearTimeout(window.__syncT);
+  window.__syncT = setTimeout(() => { el.style.opacity = '0'; }, 2500);
+}
+
+async function syncNow(){
+  if(syncInProgress) return;
+  updateSyncIndicator('⏳ Sinxronlaşır...');
+  await pullFromCloud(true);
+  await pushToCloud();
+  updateSyncIndicator('✓ Sinxron tamamlandı');
+}
+
+// Hər 8 saniyədə yoxla
+setInterval(() => { 
+  if(syncEnabled && !syncInProgress) pullFromCloud(); 
+}, 8000);
+
+// İnternet qayıdanda
+window.addEventListener('online', () => { 
+  if(syncEnabled){ 
+    setTimeout(() => { pullFromCloud(); pushToCloud(); }, 1000);
+  }
+});
+
+// Səhifə yüklənəndə bir dəfə sinxron et
+window.addEventListener('load', () => {
+  if(syncEnabled){
+    setTimeout(() => pullFromCloud(), 1500);
+  }
+});
+// ============ SUPABASE SON ============ 
+const KEY='biznespro_v6_data';
+const OLD_KEY='biznespro_v5_data';
+let db=JSON.parse(localStorage.getItem(KEY)||'null');
+if(!db){
+  const old=localStorage.getItem(OLD_KEY);
+  if(old){
+    try{ db=JSON.parse(old); }catch(e){ db=null; }
+  }
+}
+if(!db){
+  db={products:[],customers:[],suppliers:[],invoices:[],payments:[],expenses:[],cash:[],actualStock:{},stockLog:[],categories:[],returns:[],settings:{company:'BiznesPro',currency:'AZN'}};
+}
+if(!db.actualStock||typeof db.actualStock!=='object') db.actualStock={};
+if(!db.settings||typeof db.settings!=='object') db.settings={company:'BiznesPro',currency:'AZN'};
+if(!Array.isArray(db.stockLog)) db.stockLog=[];
+if(!Array.isArray(db.categories)) db.categories=[];
+if(!Array.isArray(db.returns)) db.returns=[];
+let page='dashboard';
+const money=n=>(Number(n)||0).toLocaleString('az-AZ',{minimumFractionDigits:2,maximumFractionDigits:2})+' AZN';
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function save(){
+  touchLocal();                 // ← əlavə et
+  localStorage.setItem(KEY, JSON.stringify(db));
+  render();
+  if(syncEnabled) pushToCloud();
+} 
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function dateNow(){return new Date().toISOString().slice(0,10)}
+function sum(a,f){return a.reduce((s,x)=>s+(Number(f(x))||0),0)}
+function invTotal(i){return sum(i.items||[],x=>x.qty*x.price-(x.discount||0)+(x.vat||0))}
+function productMap(){let m={};db.products.forEach(p=>m[p.id]=p);return m}
+function nextNo(){let mx=0;db.invoices.forEach(i=>mx=Math.max(mx,parseInt(String(i.no).replace(/\D/g,''))||0));return 'Q-'+String(mx+1).padStart(6,'0')}
+function stock(p){let q=Number(p.initial||0);db.invoices.forEach(i=>(i.items||[]).forEach(x=>{if(x.productId===p.id)q+=(i.type==='purchase'?1:-1)*Number(x.qty||0)}));return q}
+function salesValue(){return sum(db.invoices.filter(i=>i.type==='sale'),invTotal)}
+function purchaseValue(){return sum(db.invoices.filter(i=>i.type==='purchase'),invTotal)}
+function expenseValue(){return sum(db.expenses,x=>x.amount)}
+function returnValue(){return sum(db.returns||[],r=>r.total||0)}
+function customerBalance(id){let sales=sum(db.invoices.filter(i=>i.type==='sale'&&i.partyId===id),invTotal);let paid=sum(db.payments.filter(p=>p.type==='customer'&&p.partyId===id),x=>x.amount);let ret=sum((db.returns||[]).filter(r=>r.type==='sale'&&r.partyId===id),x=>x.total||0);return sales-paid-ret}
+function supplierBalance(id){let buys=sum(db.invoices.filter(i=>i.type==='purchase'&&i.partyId===id),invTotal);let paid=sum(db.payments.filter(p=>p.type==='supplier'&&p.partyId===id),x=>x.amount);let ret=sum((db.returns||[]).filter(r=>r.type==='purchase'&&r.partyId===id),x=>x.total||0);return buys-paid-ret}
+function toast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background = type==='bad' ? '#c53030' : (type==='warn' ? '#b7791f' : '#16834b');
+  t.classList.add('show');
+  clearTimeout(window.__toastT);
+  window.__toastT=setTimeout(()=>t.classList.remove('show'),2500);
+}
+function logStock(productId,delta,reason,refId,refNo){
+  db.stockLog.push({id:uid(),date:dateNow(),productId,delta:Number(delta),reason,refId:refId||'',refNo:refNo||'',ts:Date.now()});
+}
+function costOf(p){return Number(p.maya!=null?p.maya:(p.cost||0))}
+
+const navs=[
+ ['dashboard','🏠 İdarə paneli'],
+ ['invoices','🧾 Qaimələr'],
+ ['returns','↩️ Qaytarmalar'],
+ ['products','📦 Məhsullar / Anbar'],
+ ['categories','🗂️ Kateqoriyalar'],
+ ['stocklog','📦 Stok jurnalı'],
+ ['customers','👥 Müştərilər'],
+ ['suppliers','🚚 Təchizatçılar'],
+ ['payments','💳 Borclar / Ödənişlər'],
+ ['cash','💵 Kassa'],
+ ['expenses','💸 Xərclər'],
+ ['reports','📊 Hesabatlar'],
+ ['profit','💰 Mənfəət analizi'],
+ ['actualsales','📋 Faktiki satış'],
+ ['settings','⚙️ Parametrlər']
+];
+
+const subtitles={
+ dashboard:'Satış, alış, stok və maliyyə nəzarəti',
+ invoices:'Satış və alış qaimələri',
+ returns:'Müştəri və təchizatçı qaytarmaları',
+ products:'Məhsul kartları və anbar qalığı',
+ categories:'Məhsul kateqoriyaları',
+ stocklog:'Bütün stok hərəkətləri',
+ customers:'Müştəri bazası və borclar',
+ suppliers:'Təchizatçı bazası və borclar',
+ payments:'Ödənişlər və balanslar',
+ cash:'Kassa giriş-çıxışı',
+ expenses:'Xərclər və kateqoriyalar',
+ reports:'Aylıq və illik hesabatlar',
+ profit:'Real mənfəət və marja analizi',
+ actualsales:'Faktiki satış hesabatı',
+ settings:'Şirkət məlumatları və parametrlər'
+};
+
+function renderNav(){
+ const nav=document.getElementById('nav');
+ let html = navs.map(n=>`<button type="button" data-page="${n[0]}" class="${page===n[0]?'active':''}">${n[1]}</button>`).join('');
+ 
+ if(page==='products'){
+   const s = sortState.products;
+   html += '<div class="nav-sort">'+
+     '<div class="nav-sort-title">📊 Sıralama</div>'+
+     '<button onclick="setSortField(\'products\',\'verilmeTarixi\',\'desc\')" class="'+(s.field==='verilmeTarixi'&&s.dir==='desc'?'active':'')+'">📅 Yenisi əvvəl</button>'+
+     '<button onclick="setSortField(\'products\',\'verilmeTarixi\',\'asc\')" class="'+(s.field==='verilmeTarixi'&&s.dir==='asc'?'active':'')+'">📅 Köhnəsi əvvəl</button>'+
+     '<button onclick="setSortField(\'products\',\'code\',\'asc\')" class="'+(s.field==='code'?'active':'')+'">🔤 Kod (A-Z)</button>'+
+     '<button onclick="setSortField(\'products\',\'name\',\'asc\')" class="'+(s.field==='name'?'active':'')+'">📝 Ad (A-Z)</button>'+
+     '<button onclick="setSortField(\'products\',\'növ\',\'asc\')" class="'+(s.field==='növ'?'active':'')+'">📂 Kateqoriya</button>'+
+   '</div>';
+ }
+ 
+ nav.innerHTML = html;
+ nav.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
+}
+function go(p){page=p;render()}
+const pages={dashboard, invoices, returns, products, categories, stocklog, customers, suppliers, payments, cash, expenses, reports, profit, actualsales, settingsPage};
+function render(){
+ renderNav();
+ const fn=pages[page]||dashboard;
+ document.getElementById('view').innerHTML=fn();
+ document.getElementById('title').textContent=navs.find(n=>n[0]===page)?.[1]||'BiznesPro';
+ document.getElementById('subtitle').textContent=subtitles[page]||'';
+ if(page==='reports') setTimeout(renderReport,0);
+ if(page==='dashboard') setTimeout(renderDashboardCharts,50);
+ if(page==='profit') setTimeout(renderProfitCharts,50);
+}
+
+/* ============ DASHBOARD ============ */
+function dashboard(){
+ let sales=salesValue(), buys=purchaseValue(), exp=expenseValue(), ret=returnValue();
+ let cogs = sum(db.invoices.filter(i=>i.type==='sale'), inv=>sum(inv.items||[],x=>{
+   const p=db.products.find(z=>z.id===x.productId);
+   return x.qty*(p?costOf(p):0);
+ }));
+ let realProfit = sales - cogs - exp - ret;
+ return `<div class="grid">
+ <div class="card metric"><div class="label">Satış dövriyyəsi</div><div class="num">${money(sales)}</div></div>
+ <div class="card metric"><div class="label">Alışlar</div><div class="num">${money(buys)}</div></div>
+ <div class="card metric"><div class="label">Xərclər</div><div class="num red">${money(exp)}</div></div>
+ <div class="card metric"><div class="label">Qaytarmalar</div><div class="num red">${money(ret)}</div></div>
+ <div class="card metric"><div class="label">Real mənfəət</div><div class="num ${realProfit>=0?'green':'red'}">${money(realProfit)}</div></div>
+ </div>
+ <div class="grid" style="margin-top:14px">
+ <div class="card metric"><div class="label">Stok dəyəri (maya)</div><div class="num">${money(sum(db.products,p=>stock(p)*costOf(p)))}</div></div>
+ <div class="card metric"><div class="label">Müştəri borcu</div><div class="num yellow">${money(sum(db.customers,c=>customerBalance(c.id)))}</div></div>
+ <div class="card metric"><div class="label">Təchizatçı borcu</div><div class="num yellow">${money(sum(db.suppliers,s=>supplierBalance(s.id)))}</div></div>
+ <div class="card metric"><div class="label">Kassa qalığı</div><div class="num">${money(sum(db.cash.filter(x=>x.type==='in'),x=>x.amount)-sum(db.cash.filter(x=>x.type==='out'),x=>x.amount))}</div></div>
+ <div class="card metric"><div class="label">Məhsul sayı</div><div class="num">${db.products.length}</div></div>
+ </div>
+ <div class="grid-2" style="margin-top:14px">
+   <div class="panel"><h3>📈 Son 6 ay satış</h3><div class="chart-wrap"><canvas id="chartSales"></canvas></div></div>
+   <div class="panel"><h3>🥇 Top 5 məhsul (satış məbləği)</h3><div class="chart-wrap"><canvas id="chartTop"></canvas></div></div>
+ </div>
+ <div class="panel"><h2>Son qaimələr</h2>${invoiceTable(db.invoices.slice().reverse().slice(0,8))}</div>
+ <div class="panel"><h2>Azalan stok</h2>${productTable(db.products.filter(p=>stock(p)<=Number(p.min||0)).slice(0,10))}</div>`;
+}
+
+let charts={};
+function renderDashboardCharts(){
+  if(typeof Chart==='undefined') return;
+  const months=[];
+  const now=new Date();
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    months.push({y:d.getFullYear(),m:d.getMonth()+1,label:d.toLocaleDateString('az-AZ',{month:'short',year:'2-digit'})});
+  }
+  const salesData=months.map(mm=>sum(db.invoices.filter(i=>{
+    const d=new Date(i.date);
+    return i.type==='sale'&&d.getFullYear()===mm.y&&d.getMonth()+1===mm.m;
+  }),invTotal));
+  const buyData=months.map(mm=>sum(db.invoices.filter(i=>{
+    const d=new Date(i.date);
+    return i.type==='purchase'&&d.getFullYear()===mm.y&&d.getMonth()+1===mm.m;
+  }),invTotal));
+
+  if(charts.sales) charts.sales.destroy();
+  const c1=document.getElementById('chartSales');
+  if(c1){
+    charts.sales=new Chart(c1,{type:'line',data:{
+      labels:months.map(x=>x.label),
+      datasets:[
+        {label:'Satış',data:salesData,borderColor:'#1769aa',backgroundColor:'#1769aa22',tension:.3,fill:true},
+        {label:'Alış',data:buyData,borderColor:'#c53030',backgroundColor:'#c5303022',tension:.3,fill:true}
+      ]
+    },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+  }
+
+  const prodSales={};
+  db.invoices.filter(i=>i.type==='sale').forEach(i=>(i.items||[]).forEach(x=>{
+    prodSales[x.productId]=(prodSales[x.productId]||0)+x.qty*x.price-(x.discount||0);
+  }));
+  const top=Object.entries(prodSales).map(([pid,val])=>({p:db.products.find(z=>z.id===pid),val})).filter(x=>x.p).sort((a,b)=>b.val-a.val).slice(0,5);
+
+  if(charts.top) charts.top.destroy();
+  const c2=document.getElementById('chartTop');
+  if(c2){
+    charts.top=new Chart(c2,{type:'bar',data:{
+      labels:top.map(x=>x.p.name.slice(0,20)),
+      datasets:[{label:'Satış məbləği',data:top.map(x=>x.val),backgroundColor:'#16834b'}]
+    },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},indexAxis:'y'}});
+  }
+}
+
+/* ============ INVOICES ============ */
+function invoiceTable(arr){
+ return `<div class="tablewrap"><table class="table"><thead><tr>
+   <th>Qaimə</th><th>Tarix</th><th>Növ</th><th>Tərəf</th><th>Məbləğ</th><th>Maya</th><th>Marja</th><th>Əməliyyat</th>
+ </tr></thead><tbody>${arr.map(i=>{
+   const cogs=sum(i.items||[],x=>{const p=db.products.find(z=>z.id===x.productId);return x.qty*(p?costOf(p):0)});
+   const total=invTotal(i);
+   const margin=i.type==='sale'?total-cogs:0;
+   const marginPct=total>0?(margin/total*100):0;
+   return `<tr>
+   <td>${esc(i.no)}</td>
+   <td>${i.date}</td>
+   <td>${i.type==='sale'?'<span class="badge ok">Satış</span>':'<span class="badge warn">Alış</span>'}</td>
+   <td>${esc(i.partyName||'-')}</td>
+   <td>${money(total)}</td>
+   <td>${i.type==='sale'?money(cogs):'-'}</td>
+   <td>${i.type==='sale'?`<span class="${margin>=0?'green':'red'}">${money(margin)} (${marginPct.toFixed(1)}%)</span>`:'-'}</td>
+   <td>
+     <button class="light" onclick="printInvoice('${i.id}')">🖨</button>
+     <button class="light" onclick="shareWhatsApp('${i.id}')">📱</button>
+     <button class="light" onclick="editInvoice('${i.id}')">Düzəlt</button>
+     <button class="danger" onclick="deleteInvoice('${i.id}')">Sil</button>
+   </td>
+ </tr>`;
+ }).join('')||'<tr><td colspan="8">Məlumat yoxdur</td></tr>'}</tbody></table></div>`;
+}
+
+function productTable(arr){
+  const s = sortState.products;
+  arr = sortData(arr, s.field, s.dir);
+  const sortCls = (f) => 'sortable ' + (s.field===f ? ('sort-' + (s.dir==='asc'?'asc':'desc')) : '');
+  
+  let html='<div class="tablewrap"><table class="table"><thead><tr>'+
+    '<th style="width:50px;text-align:center">#</th>'+
+    '<th class="'+sortCls('code')+'" onclick="setSort(\'products\',\'code\')">Kod</th>'+
+    '<th class="'+sortCls('name')+'" onclick="setSort(\'products\',\'name\')">Məhsul</th>'+
+    '<th class="'+sortCls('növ')+'" onclick="setSort(\'products\',\'növ\')">Kateqoriya</th>'+
+    '<th>Vahid</th>'+
+    '<th class="'+sortCls('initial')+'" onclick="setSort(\'products\',\'initial\')">Baş. stok</th>'+
+    '<th>Qalıq</th>'+
+    '<th class="'+sortCls('maya')+'" onclick="setSort(\'products\',\'maya\')">Maya</th>'+
+    '<th class="'+sortCls('cost')+'" onclick="setSort(\'products\',\'cost\')">Alış</th>'+
+    '<th class="'+sortCls('price')+'" onclick="setSort(\'products\',\'price\')">Satış</th>'+
+    '<th>Marja</th>'+
+    '<th>Maya dəyəri</th>'+
+    '<th>Alış dəyəri</th>'+
+    '<th>Satış dəyəri</th>'+
+    '<th class="'+sortCls('verilmeTarixi')+'" onclick="setSort(\'products\',\'verilmeTarixi\')">Verilmə tarixi</th>'+
+    '<th>Əməliyyat</th>'+
+  '</tr></thead><tbody>';
+  
+  if(!arr||!arr.length){
+    html+='<tr><td colspan="16">Məlumat yoxdur</td></tr></tbody></table></div>';
+    return html;
+  }
+  
+  let tInit=0,tStock=0,tMaya=0,tBuy=0,tSale=0;
+  arr.forEach((p, idx)=>{
+    const st=stock(p);
+    const maya=costOf(p);
+    const cost=Number(p.cost||0);
+    const price=Number(p.price||0);
+    const margin=price>0?((price-cost)/price*100):0;
+    tInit+=Number(p.initial||0);tStock+=st;tMaya+=st*maya;tBuy+=st*cost;tSale+=st*price;
+    html+='<tr>'+
+      '<td style="text-align:center;font-weight:700;color:#667085">'+(idx+1)+'</td>'+
+      '<td>'+esc(p.code)+'</td>'+
+      '<td>'+esc(p.name)+'</td>'+
+      '<td>'+esc(p.növ||p.nov||'')+'</td>'+
+      '<td>'+esc(p.unit)+'</td>'+
+      '<td>'+Number(p.initial||0)+'</td>'+
+      '<td><span class="badge '+(st<=Number(p.min||0)?'bad':'ok')+'">'+st+'</span></td>'+
+      '<td>'+money(maya)+'</td>'+
+      '<td>'+money(cost)+'</td>'+
+      '<td>'+money(price)+'</td>'+
+      '<td><span class="'+(margin>=20?'green':(margin>=0?'yellow':'red'))+'">'+margin.toFixed(1)+'%</span></td>'+
+      '<td>'+money(st*maya)+'</td>'+
+      '<td>'+money(st*cost)+'</td>'+
+      '<td>'+money(st*price)+'</td>'+
+      '<td>'+esc(p.verilmeTarixi||'')+'</td>'+
+      '<td><button class="light" onclick="productForm(\''+p.id+'\')">Düzəlt</button> <button class="danger" onclick="deleteProduct(\''+p.id+'\')">Sil</button></td>'+
+    '</tr>';
+  });
+  
+  html+='<tr style="font-weight:700;background:#f0f4f8"><td colspan="5">YEKUN</td><td>'+tInit+'</td><td>'+tStock+'</td><td></td><td></td><td></td><td></td><td>'+money(tMaya)+'</td><td>'+money(tBuy)+'</td><td>'+money(tSale)+'</td><td colspan="2"></td></tr>';
+  html+='</tbody></table></div>';
+  return html;
+}
+
+function deleteProduct(id){
+  const p=db.products.find(x=>x.id===id); if(!p)return;
+  const usedInv=db.invoices.filter(i=>(i.items||[]).some(x=>x.productId===id)).length;
+  const msg=usedInv?`"${p.name}" məhsulu ${usedInv} qaimədə istifadə olunub.\nSilinsə, həmin qaimələrdə ad görünməyəcək.\n\nƏminsiniz?`:`"${p.name}" silinsin?`;
+  if(!confirm(msg))return;
+  db.products=db.products.filter(x=>x.id!==id);save();
+}
+
+function products(){
+  const s = sortState.products;
+  return '<div class="panel">'+
+    '<div class="toolbar">'+
+    '<button onclick="productForm()">+ Məhsul</button> '+
+    '<button class="success" onclick="document.getElementById(\'importExcel\').click()">📤 Excel idxal</button> '+
+    '<input id="importExcel" type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importProductsExcel(this)"> '+
+    '<input id="ps" placeholder="Axtar..." oninput="filterProducts()"> '+
+    '<button class="light" onclick="exportCSV(\'products\')">CSV ixrac</button> '+
+    '<button class="light" onclick="exportProductsExcel()">📊 Excel ixrac</button> '+
+    '<select class="sort-dropdown" onchange="setSortField(\'products\', this.value, sortState.products.dir)">'+
+      '<option value="verilmeTarixi" '+(s.field==='verilmeTarixi'?'selected':'')+'>📅 Verilmə tarixi</option>'+
+      '<option value="code" '+(s.field==='code'?'selected':'')+'>🔤 Kod (A-Z)</option>'+
+      '<option value="name" '+(s.field==='name'?'selected':'')+'>📝 Ad (A-Z)</option>'+
+      '<option value="növ" '+(s.field==='növ'?'selected':'')+'>📂 Kateqoriya</option>'+
+    '</select>'+
+    '<button class="light" onclick="setSort(\'products\',\''+s.field+'\')">'+(s.dir==='asc'?'↑ Artan':'↓ Azalan')+'</button>'+
+    '<button class="danger" onclick="deleteAllProducts()">Hamısını sil</button>'+
+    '</div>'+
+    '<div id="productList">'+productTable(db.products)+'</div>'+
+  '</div>';
+}
+function filterProducts(){
+ let q=document.getElementById('ps').value.toLowerCase().trim();
+ document.getElementById('productList').innerHTML=productTable(db.products.filter(p=>{
+  const t=(p.name+' '+p.code+' '+(p.növ||'')+' '+(p.nov||'')).toLowerCase();
+  return t.includes(q);
+ }));
+}
+
+function invoices(){
+  return `<div class="panel"><div class="toolbar">
+    <button onclick="openInvoice('sale')">+ Satış</button>
+    <button class="success" onclick="openInvoice('purchase')">+ Alış</button>
+    <input placeholder="Axtar..." oninput="filterInvoices(this.value)">
+    <button class="light" onclick="exportCSV('invoices')">CSV</button>
+  </div><div id="invoiceList">${invoiceTable(db.invoices.slice().reverse())}</div></div>`;
+}
+function filterInvoices(q){
+  document.getElementById('invoiceList').innerHTML=invoiceTable(
+    db.invoices.slice().reverse().filter(i=>(i.no+' '+(i.partyName||'')).toLowerCase().includes((q||'').toLowerCase()))
+  );
+}
+
+/* ============ RETURNS ============ */
+function returns(){
+  const arr=(db.returns||[]).slice().reverse();
+  return `<div class="panel"><div class="toolbar">
+    <button onclick="returnForm('sale')">↩️ Müştəri qaytarması</button>
+    <button class="warn" onclick="returnForm('purchase')">↩️ Təchizatçıya qaytarma</button>
+  </div>
+  <div class="tablewrap"><table class="table"><thead><tr>
+    <th>No</th><th>Tarix</th><th>Növ</th><th>Tərəf</th><th>Məbləğ</th><th>Səbəb</th><th></th>
+  </tr></thead><tbody>
+  ${arr.map(r=>`<tr>
+    <td>${esc(r.no)}</td><td>${r.date}</td>
+    <td>${r.type==='sale'?'<span class="badge warn">Müştəri qayt.</span>':'<span class="badge bad">Təchizatçıya</span>'}</td>
+    <td>${esc(r.partyName||'-')}</td>
+    <td>${money(r.total||0)}</td>
+    <td>${esc(r.reason||'')}</td>
+    <td><button class="danger" onclick="deleteReturn('${r.id}')">Sil</button></td>
+  </tr>`).join('')||'<tr><td colspan="7">Məlumat yoxdur</td></tr>'}
+  </tbody></table></div></div>`;
+}
+function nextReturnNo(){let mx=0;(db.returns||[]).forEach(r=>mx=Math.max(mx,parseInt(String(r.no).replace(/\D/g,''))||0));return 'R-'+String(mx+1).padStart(6,'0')}
+function returnForm(type='sale'){
+  const parties=type==='sale'?db.customers:db.suppliers;
+  const opt=parties.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
+  modal(type==='sale'?'Müştəri qaytarması':'Təchizatçıya qaytarma',`
+    <div class="formgrid">
+      <div class="field"><label>Qaytarma №</label><input id="rno" value="${nextReturnNo()}" readonly></div>
+      <div class="field"><label>Tarix</label><input id="rdate" type="date" value="${dateNow()}"></div>
+      <div class="field wide"><label>${type==='sale'?'Müştəri':'Təchizatçı'}</label><select id="rparty"><option value="">Seçin</option>${opt}</select></div>
+      <div class="field wide"><label>Səbəb</label><input id="rreason" placeholder="Məs: keyfiyyət, ölçü..."></div>
+    </div>
+    <div style="margin-top:12px" id="returnItems"></div>
+    <div class="actions">
+      <button class="light" onclick="addReturnRow('${type}')">+ Sətir</button>
+      <button onclick="saveReturn('${type}')">Yadda saxla</button>
+    </div>
+  `);
+  addReturnRow(type);
+  addReturnRow(type);
+}
+function addReturnRow(type,item=null){
+  const host=document.getElementById('returnItems');
+  const row=document.createElement('div');row.className='formgrid';row.style.marginBottom='8px';
+  const prodOpt=db.products.map(p=>`<option value="${p.id}">${esc(p.code)} — ${esc(p.name)}</option>`).join('');
+  row.innerHTML=`
+    <div class="field wide"><label>Məhsul</label><select class="rr-product"><option value="">Seçin</option>${prodOpt}</select></div>
+    <div class="field"><label>Miqdar</label><input class="rr-qty" type="number" step=".001" value="${item?.qty||1}"></div>
+    <div class="field"><label>Alış qiyməti</label><input class="rr-price" type="number" step=".01" value="${item?.price||0}"></div>
+    <div class="field"><label>Satış qiyməti</label><input class="rr-sale-price" type="number" step=".01" value="0"></div>
+    <input type="hidden" class="rr-pid" value="${item?.productId||''}">
+  `;
+  host.appendChild(row);
+  const sel=row.querySelector('.rr-product');
+  if(item?.productId) sel.value=item.productId;
+  sel.onchange=()=>{
+    const p=db.products.find(x=>x.id===sel.value);
+    if(p){
+      row.querySelector('.rr-price').value = p.alis || p.cost || 0;
+      row.querySelector('.rr-sale-price').value = p.price || 0;
+      row.querySelector('.rr-pid').value=p.id;
+    }
+  };
+  if(item?.productId){
+    const p=db.products.find(x=>x.id===item.productId);
+    if(p){
+      row.querySelector('.rr-price').value = item.price || p.alis || p.cost || 0;
+      row.querySelector('.rr-sale-price').value = p.price || 0;
+    }
+  }
+}
+function saveReturn(type){
+  const party=document.getElementById('rparty').value;
+  const reason=document.getElementById('rreason').value.trim();
+  const rows=[...document.querySelectorAll('#returnItems .formgrid')];
+  const items=[];
+  rows.forEach(r=>{
+    const pid=r.querySelector('.rr-product').value;
+    const qty=+r.querySelector('.rr-qty').value||0;
+    const alisPrice=+r.querySelector('.rr-price').value||0;
+    const salePrice=+r.querySelector('.rr-sale-price')?.value||0;
+    const price = type==='purchase' ? alisPrice : salePrice;
+    if(pid&&qty>0) items.push({productId:pid,qty,alisPrice,salePrice,price,total:qty*price});
+  });
+  if(!items.length){toast('Ən azı bir sətir','bad');return;}
+  const p=(type==='sale'?db.customers:db.suppliers).find(x=>x.id===party);
+  const total=items.reduce((s,x)=>s+x.total,0);
+  const ret={id:uid(),no:document.getElementById('rno').value,date:document.getElementById('rdate').value,type,partyId:party,partyName:p?.name||'',reason,items,total};
+  db.returns.push(ret);
+  const sign = type==='sale' ? 1 : -1;
+  items.forEach(it=>{
+    logStock(it.productId,sign*it.qty,'return',ret.id,ret.no);
+  });
+  closeModal();save();toast('Qaytarma yadda saxlanıldı');
+}
+function deleteReturn(id){
+  if(!confirm('Qaytarma silinsin? Stok əksinə düzəldiləcək.'))return;
+  const r=db.returns.find(x=>x.id===id);if(!r)return;
+  const sign = r.type==='sale' ? -1 : 1;
+  (r.items||[]).forEach(it=>logStock(it.productId,sign*it.qty,'return-delete',r.id,r.no));
+  db.returns=db.returns.filter(x=>x.id!==id);save();toast('Silindi');
+}
+
+/* ============ STOCK LOG ============ */
+function stocklog(){
+  const arr=(db.stockLog||[]).slice().reverse();
+  return `<div class="panel"><div class="toolbar">
+    <input placeholder="Məhsul adı, kod, səbəb..." oninput="filterStockLog(this.value)" id="slSearch">
+    <button class="light" onclick="exportStockLogCSV()">CSV</button>
+  </div>
+  <div class="tablewrap"><table class="table"><thead><tr>
+    <th>Tarix</th><th>Məhsul</th><th>Miqdar</th><th>Səbəb</th><th>Qaimə/Qaytarma</th>
+  </tr></thead><tbody id="slBody">
+  ${arr.map(l=>{
+    const p=db.products.find(x=>x.id===l.productId);
+    return `<tr>
+      <td>${l.date}</td>
+      <td>${esc(p?.code||'')} — ${esc(p?.name||'(silinmiş)')}</td>
+      <td class="${l.delta>0?'green':'red'}">${l.delta>0?'+':''}${l.delta}</td>
+      <td>${esc(l.reason)}</td>
+      <td>${esc(l.refNo||'')}</td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="5">Hələ hərəkət yoxdur</td></tr>'}
+  </tbody></table></div></div>`;
+}
+function filterStockLog(q){
+  q=(q||'').toLowerCase();
+  const arr=(db.stockLog||[]).slice().reverse().filter(l=>{
+    const p=db.products.find(x=>x.id===l.productId);
+    return ((p?.name||'')+' '+(p?.code||'')+' '+(l.reason||'')+' '+(l.refNo||'')).toLowerCase().includes(q);
+  });
+  document.getElementById('slBody').innerHTML=arr.map(l=>{
+    const p=db.products.find(x=>x.id===l.productId);
+    return `<tr><td>${l.date}</td><td>${esc(p?.code||'')} — ${esc(p?.name||'(silinmiş)')}</td><td class="${l.delta>0?'green':'red'}">${l.delta>0?'+':''}${l.delta}</td><td>${esc(l.reason)}</td><td>${esc(l.refNo||'')}</td></tr>`;
+  }).join('')||'<tr><td colspan="5">Tapılmadı</td></tr>';
+}
+function exportStockLogCSV(){
+  const rows=[['Tarix','Məhsul','Kod','Miqdar','Səbəb','Qaimə']];
+  (db.stockLog||[]).forEach(l=>{const p=db.products.find(x=>x.id===l.productId);rows.push([l.date,p?.name||'',p?.code||'',l.delta,l.reason,l.refNo||'']);});
+  const csv='\ufeff'+rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='Stok_jurnali.csv';a.click();
+}
+
+/* ============ CATEGORIES ============ */
+function categories(){
+  return `<div class="panel"><div class="toolbar">
+    <button onclick="categoryForm()">+ Kateqoriya</button>
+  </div>
+  <div class="tablewrap"><table class="table"><thead><tr>
+    <th>Ad</th><th>Rəng</th><th>Məhsul sayı</th><th></th>
+  </tr></thead><tbody>
+  ${(db.categories||[]).map(c=>`<tr>
+    <td><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:${esc(c.color||'#ccc')};vertical-align:middle;margin-right:8px"></span>${esc(c.name)}</td>
+    <td>${esc(c.color||'')}</td>
+    <td>${db.products.filter(p=>(p.növ||p.nov||'')===c.name).length}</td>
+    <td>
+      <button class="light" onclick="categoryForm('${c.id}')">Düzəlt</button>
+      <button class="danger" onclick="deleteCategory('${c.id}')">Sil</button>
+    </td>
+  </tr>`).join('')||'<tr><td colspan="4">Kateqoriya yoxdur</td></tr>'}
+  </tbody></table></div></div>`;
+}
+function categoryForm(id){
+  const c=(db.categories||[]).find(x=>x.id===id)||{id:uid(),name:'',color:'#1769aa'};
+  modal('Kateqoriya',`<div class="formgrid">
+    <div class="field wide"><label>Ad</label><input id="catName" value="${esc(c.name)}"></div>
+    <div class="field"><label>Rəng</label><input id="catColor" type="color" value="${esc(c.color||'#1769aa')}"></div>
+  </div><div class="actions"><button onclick="saveCategory('${c.id}')">Yadda saxla</button></div>`);
+}
+function saveCategory(id){
+  const name=document.getElementById('catName').value.trim();
+  const color=document.getElementById('catColor').value;
+  if(!name){toast('Ad yazın','bad');return;}
+  let c=(db.categories||[]).find(x=>x.id===id);
+  if(!c){c={id};db.categories.push(c);}
+  c.name=name;c.color=color;
+  closeModal();save();toast('Yadda saxlanıldı');
+}
+function deleteCategory(id){
+  const c=db.categories.find(x=>x.id===id);if(!c)return;
+  const used=db.products.filter(p=>(p.növ||p.nov||'')===c.name).length;
+  if(!confirm(`"${c.name}" silinsin?${used?`\n${used} məhsulda istifadə olunur.`:''}`))return;
+  db.categories=db.categories.filter(x=>x.id!==id);save();
+}
+
+/* ============ CUSTOMERS / SUPPLIERS ============ */
+function customers(){
+  return `<div class="panel"><div class="toolbar">
+    <button onclick="partyForm('customer')">+ Müştəri</button>
+    <button class="success" onclick="importParties('customer')">📤 Excel idxal</button>
+    <input placeholder="Axtar..." oninput="filterParty('customer',this.value)">
+    <button class="light" onclick="exportCSV('customers')">CSV</button>
+  </div><div id="customerList">${partyTable('customer',db.customers)}</div></div>`;
+}
+function suppliers(){
+  return `<div class="panel"><div class="toolbar">
+    <button onclick="partyForm('supplier')">+ Təchizatçı</button>
+    <button class="success" onclick="importParties('supplier')">📤 Excel idxal</button>
+    <input placeholder="Axtar..." oninput="filterParty('supplier',this.value)">
+    <button class="light" onclick="exportCSV('suppliers')">CSV</button>
+  </div><div id="supplierList">${partyTable('supplier',db.suppliers)}</div></div>`;
+}
+function filterParty(t,q){
+  let a=t==='customer'?db.customers:db.suppliers;
+  document.getElementById(t==='customer'?'customerList':'supplierList').innerHTML=
+    partyTable(t,a.filter(x=>(x.name+' '+(x.phone||'')).toLowerCase().includes((q||'').toLowerCase())));
+}
+function partyTable(t,a){
+  return `<div class="tablewrap"><table class="table"><thead><tr>
+    <th>Kod</th><th>Ad</th><th>Telefon</th><th>Borc</th><th></th>
+  </tr></thead><tbody>${a.map(x=>`<tr>
+    <td>${esc(x.code)}</td><td>${esc(x.name)}</td><td>${esc(x.phone||'')}</td>
+    <td class="${(t==='customer'?customerBalance(x.id):supplierBalance(x.id))>0?'red':'green'}">${money(t==='customer'?customerBalance(x.id):supplierBalance(x.id))}</td>
+    <td><button class="light" onclick="partyForm('${t}','${x.id}')">Düzəlt</button></td>
+  </tr>`).join('')||'<tr><td colspan="5">Məlumat yoxdur</td></tr>'}</tbody></table></div>`;
+}
+function partyForm(t,id){
+  let a=t==='customer'?db.customers:db.suppliers,x=a.find(z=>z.id===id)||{id:uid(),code:'',name:'',phone:'',address:''};
+  modal(t==='customer'?'Müştəri':'Təchizatçı',`<div class="formgrid">
+    <div class="field"><label>Kod</label><input id="pcode" value="${esc(x.code)}"></div>
+    <div class="field wide"><label>Ad / Şirkət</label><input id="pname" value="${esc(x.name)}"></div>
+    <div class="field"><label>Telefon</label><input id="pphone" value="${esc(x.phone)}"></div>
+    <div class="field wide"><label>Ünvan</label><input id="paddress" value="${esc(x.address)}"></div>
+  </div><div class="actions"><button onclick="saveParty('${t}','${x.id}')">Yadda saxla</button></div>`);
+}
+function saveParty(t,id){
+  let a=t==='customer'?db.customers:db.suppliers,x=a.find(z=>z.id===id);
+  if(!x){x={id};a.push(x);}
+  x.code=pcode.value;x.name=pname.value;x.phone=pphone.value;x.address=paddress.value;
+  closeModal();save();toast('Yadda saxlanıldı');
+}
+
+/* ============ PAYMENTS / CASH / EXPENSES ============ */
+function payments(){
+  return `<div class="panel"><div class="toolbar">
+    <button onclick="paymentForm()">+ Ödəniş</button>
+    <button class="light" onclick="exportCSV('payments')">CSV</button>
+  </div><div class="tablewrap"><table class="table"><thead><tr>
+    <th>Tarix</th><th>Növ</th><th>Tərəf</th><th>Məbləğ</th><th>Üsul</th>
+  </tr></thead><tbody>${db.payments.slice().reverse().map(p=>`<tr>
+    <td>${p.date}</td><td>${p.type==='customer'?'Müştəri':'Təchizatçı'}</td>
+    <td>${esc(p.partyName)}</td><td>${money(p.amount)}</td><td>${esc(p.method)}</td>
+  </tr>`).join('')||'<tr><td colspan="5">Məlumat yoxdur</td></tr>'}</tbody></table></div></div>`;
+}
+function cash(){
+  let ins=sum(db.cash.filter(x=>x.type==='in'),x=>x.amount);
+  let outs=sum(db.cash.filter(x=>x.type==='out'),x=>x.amount);
+  return `<div class="grid">
+    <div class="card metric"><div class="label">Giriş</div><div class="num green">${money(ins)}</div></div>
+    <div class="card metric"><div class="label">Çıxış</div><div class="num red">${money(outs)}</div></div>
+    <div class="card metric"><div class="label">Qalıq</div><div class="num">${money(ins-outs)}</div></div>
+  </div><div class="panel"><div class="toolbar"><button onclick="cashForm()">+ Əməliyyat</button></div>
+  <div class="tablewrap"><table class="table"><thead><tr><th>Tarix</th><th>Növ</th><th>Məbləğ</th><th>Açıqlama</th></tr></thead><tbody>
+  ${db.cash.slice().reverse().map(x=>`<tr><td>${x.date}</td><td>${x.type==='in'?'Giriş':'Çıxış'}</td><td>${money(x.amount)}</td><td>${esc(x.note)}</td></tr>`).join('')||'<tr><td colspan="4">Yoxdur</td></tr>'}
+  </tbody></table></div></div>`;
+}
+function expenses(){
+  return `<div class="panel"><div class="toolbar">
+    <button onclick="expenseForm()">+ Xərc</button>
+    <button class="light" onclick="exportCSV('expenses')">CSV</button>
+  </div><div class="tablewrap"><table class="table"><thead><tr>
+    <th>Tarix</th><th>Kateqoriya</th><th>Məbləğ</th><th>Açıqlama</th>
+  </tr></thead><tbody>${db.expenses.slice().reverse().map(x=>`<tr>
+    <td>${x.date}</td><td>${esc(x.category)}</td><td>${money(x.amount)}</td><td>${esc(x.note||'')}</td>
+  </tr>`).join('')||'<tr><td colspan="4">Yoxdur</td></tr>'}</tbody></table></div></div>`;
+}
+
+/* ============ REPORTS / PROFIT ============ */
+function reports(){
+  const now=dateNow().slice(0,7);
+  return `<div class="panel">
+    <div class="toolbar">
+      <label>Ay: <input type="month" id="reportMonth" value="${now}" onchange="renderReport()"></label>
+      <button class="light" onclick="exportCSV('report')">CSV</button>
+      <button class="light" onclick="printReport()">🖨 Çap</button>
+    </div>
+    <div id="reportBox"><p class="muted">Ay seçin.</p></div>
+  </div>`;
+}
+function monthReportData(v){
+ let [y,m]=v.split('-').map(Number);
+ const mStart=new Date(y,m-1,1),mEnd=new Date(y,m,1);
+ const inMonth=i=>{let d=new Date(i.date);return d>=mStart&&d<mEnd};
+ const before=i=>new Date(i.date)<mStart;
+ const result=db.products.map(p=>{
+   let opening=Number(p.initial||0),purchases=0,sales=0,salesAmount=0,purchaseAmount=0,returns=0,returnsAmount=0;
+   const maya=costOf(p);
+   db.invoices.forEach(i=>(i.items||[]).forEach(x=>{
+     if(x.productId!==p.id)return;
+     const q=Number(x.qty||0);
+     if(before(i)) opening+=i.type==='purchase'?q:-q;
+     else if(inMonth(i)){
+       if(i.type==='purchase'){purchases+=q;purchaseAmount+=q*Number(x.alis||x.price||0);}
+       else {sales+=q;salesAmount+=q*Number(x.salePrice||x.price||0);}
+     }
+   }));
+   (db.returns||[]).forEach(r=>{
+     if(!inMonth(r))return;
+     (r.items||[]).forEach(x=>{
+       if(x.productId!==p.id)return;
+       const q=Number(x.qty||0);
+       if(r.type==='sale'){returns+=q;returnsAmount+=q*Number(x.price||0);}
+       else{purchases-=q;purchaseAmount-=q*Number(x.price||0);}
+     });
+   });
+   const closing=opening+purchases-sales+returns;
+   return {p,opening,purchases,sales,returns,closing,salesAmount,returnsAmount,purchaseAmount,stockValue:closing*maya};
+ });
+ return {y,m,result};
+}
+function renderReport(){
+ let v=document.getElementById('reportMonth')?.value;if(!v)return;
+ const {y,m,result}=monthReportData(v);
+ const sales=sum(db.invoices.filter(i=>i.type==='sale'&&(()=>{let d=new Date(i.date);return d.getFullYear()===y&&d.getMonth()+1===m})()),invTotal);
+ const buys=sum(db.invoices.filter(i=>i.type==='purchase'&&(()=>{let d=new Date(i.date);return d.getFullYear()===y&&d.getMonth()+1===m})()),invTotal);
+ const ex=sum(db.expenses.filter(i=>{let d=new Date(i.date);return d.getFullYear()===y&&d.getMonth()+1===m}),x=>x.amount);
+ const soldQty=sum(result,x=>x.sales);
+ const closingQty=sum(result,x=>x.closing);
+ const closingValue=sum(result,x=>x.stockValue);
+ const openingQty=sum(result,x=>x.opening);
+ const purchaseQty=sum(result,x=>x.purchases);
+ const rows=result.filter(x=>x.opening!==0||x.purchases!==0||x.sales!==0||x.closing!==0||x.salesAmount!==0);
+ document.getElementById('reportBox').innerHTML=`
+ <div class="grid">
+   <div class="card metric"><div class="label">Satış</div><div class="num">${money(sales)}</div></div>
+   <div class="card metric"><div class="label">Satılan miqdar</div><div class="num">${soldQty}</div></div>
+   <div class="card metric"><div class="label">Ay sonu qalıq</div><div class="num">${closingQty}</div></div>
+   <div class="card metric"><div class="label">Qalıq dəyəri</div><div class="num">${money(closingValue)}</div></div>
+ </div>
+ <div class="grid">
+   <div class="card metric"><div class="label">Ay əvvəli</div><div class="num">${openingQty}</div></div>
+   <div class="card metric"><div class="label">Alış</div><div class="num">${purchaseQty}</div></div>
+   <div class="card metric"><div class="label">Alış məbləği</div><div class="num">${money(buys)}</div></div>
+   <div class="card metric"><div class="label">Xərclər</div><div class="num">${money(ex)}</div></div>
+ </div>
+ <h2>📊 ${String(m).padStart(2,'0')}/${y}</h2>
+ <div class="tablewrap"><table class="table"><thead><tr>
+   <th>Kod</th><th>Məhsul</th><th>Vahid</th><th>Ay əvvəli</th><th>Alış</th><th>Satış</th><th>Qaytarma</th><th>Ay sonu</th><th>Satış məbləği</th><th>Qalıq dəyəri</th>
+ </tr></thead><tbody>
+ ${rows.map(x=>`<tr>
+   <td>${esc(x.p.code)}</td><td>${esc(x.p.name)}</td><td>${esc(x.p.unit)}</td>
+   <td>${x.opening}</td><td>${x.purchases}</td><td>${x.sales}</td><td>${x.returns}</td>
+   <td><span class="badge ${x.closing<=Number(x.p.min||0)?'bad':'ok'}">${x.closing}</span></td>
+   <td>${money(x.salesAmount)}</td><td>${money(x.stockValue)}</td>
+ </tr>`).join('')||'<tr><td colspan="10">Yoxdur</td></tr>'}
+ <tr style="font-weight:700"><td colspan="3">CƏM</td><td>${openingQty}</td><td>${purchaseQty}</td><td>${soldQty}</td><td>-</td><td>${closingQty}</td><td>${money(sum(result,x=>x.salesAmount))}</td><td>${money(closingValue)}</td></tr>
+ </tbody></table></div>`;
+}
+
+function profit(){
+  const sales=db.invoices.filter(i=>i.type==='sale');
+  let totalSales=0,totalCogs=0,totalExpense=expenseValue(),totalReturns=returnValue();
+  const byProduct={};
+  sales.forEach(inv=>{
+    totalSales+=invTotal(inv);
+    (inv.items||[]).forEach(x=>{
+      const p=db.products.find(z=>z.id===x.productId);
+      const cogs=x.qty*(p?costOf(p):0);
+      totalCogs+=cogs;
+      const key=x.productId;
+      if(!byProduct[key]) byProduct[key]={p,qty:0,sales:0,cogs:0};
+      byProduct[key].qty+=x.qty;
+      byProduct[key].sales+=x.qty*x.price-(x.discount||0);
+      byProduct[key].cogs+=cogs;
+    });
+  });
+  const realProfit=totalSales-totalCogs-totalExpense-totalReturns;
+  const marginPct=totalSales>0?(realProfit/totalSales*100):0;
+  const arr=Object.values(byProduct).sort((a,b)=>(b.sales-b.cogs)-(a.sales-a.cogs));
+  return `<div class="grid">
+    <div class="card metric"><div class="label">Ümumi satış</div><div class="num">${money(totalSales)}</div></div>
+    <div class="card metric"><div class="label">Maya dəyəri (COGS)</div><div class="num red">${money(totalCogs)}</div></div>
+    <div class="card metric"><div class="label">Brüt mənfəət</div><div class="num">${money(totalSales-totalCogs)}</div></div>
+    <div class="card metric"><div class="label">Xərclər + Qaytarma</div><div class="num red">${money(totalExpense+totalReturns)}</div></div>
+    <div class="card metric"><div class="label">Real mənfəət</div><div class="num ${realProfit>=0?'green':'red'}">${money(realProfit)}</div></div>
+  </div>
+  <div class="grid-2" style="margin-top:14px">
+    <div class="panel"><h3>Mənfəət bölgüsü</h3><div class="chart-wrap"><canvas id="chartProfit"></canvas></div></div>
+    <div class="panel"><h3>Marja faizi</h3><div style="text-align:center;padding:30px"><div style="font-size:60px;font-weight:900;color:${marginPct>=0?'#16834b':'#c53030'}">${marginPct.toFixed(1)}%</div><p class="muted">Ümumi marja</p></div></div>
+  </div>
+  <div class="panel"><h2>Məhsul üzrə mənfəət</h2>
+  <div class="tablewrap"><table class="table"><thead><tr>
+    <th>Kod</th><th>Məhsul</th><th>Satılan</th><th>Satış</th><th>Maya</th><th>Mənfəət</th><th>Marja %</th>
+  </tr></thead><tbody>
+  ${arr.map(x=>{
+    const profit=x.sales-x.cogs;
+    const pct=x.sales>0?(profit/x.sales*100):0;
+    return `<tr>
+      <td>${esc(x.p?.code||'')}</td><td>${esc(x.p?.name||'(silinmiş)')}</td>
+      <td>${x.qty}</td><td>${money(x.sales)}</td><td>${money(x.cogs)}</td>
+      <td class="${profit>=0?'green':'red'}">${money(profit)}</td>
+      <td><span class="badge ${pct>=20?'ok':(pct>=0?'warn':'bad')}">${pct.toFixed(1)}%</span></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="7">Yoxdur</td></tr>'}
+  </tbody></table></div></div>`;
+}
+function renderProfitCharts(){
+  if(typeof Chart==='undefined')return;
+  const sales=db.invoices.filter(i=>i.type==='sale');
+  let totalSales=0,totalCogs=0;
+  sales.forEach(inv=>{totalSales+=invTotal(inv);(inv.items||[]).forEach(x=>{const p=db.products.find(z=>z.id===x.productId);totalCogs+=x.qty*(p?costOf(p):0);});});
+  const exp=expenseValue(),ret=returnValue();
+  if(charts.profit) charts.profit.destroy();
+  const c=document.getElementById('chartProfit');
+  if(c){
+    charts.profit=new Chart(c,{type:'doughnut',data:{
+      labels:['Maya dəyəri','Xərclər','Qaytarma','Real mənfəət'],
+      datasets:[{data:[totalCogs,exp,ret,Math.max(0,totalSales-totalCogs-exp-ret)],backgroundColor:['#c53030','#b7791f','#667085','#16834b']}]
+    },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+  }
+}
+
+/* ============ ACTUAL SALES ============ */
+function totalAvailable(p){
+ let q=Number(p.initial||0);
+ db.invoices.forEach(i=>(i.items||[]).forEach(x=>{if(x.productId===p.id&&i.type==='purchase')q+=Number(x.qty||0)}));
+ (db.returns||[]).forEach(r=>{
+   (r.items||[]).forEach(x=>{
+     if(x.productId!==p.id)return;
+     if(r.type==='sale') q+=Number(x.qty||0);
+     else q-=Number(x.qty||0);
+   });
+ });
+ return q;
+}
+function recordedSalesQty(p){
+ return sum(db.invoices.filter(i=>i.type==='sale'),i=>sum(i.items||[],x=>x.productId===p.id?x.qty:0));
+}
+function actualsales(){
+ let rows=db.products.map(p=>{
+   const available=totalAvailable(p);
+   const actual=db.actualStock[p.id]===undefined?'':Number(db.actualStock[p.id]||0);
+   const sold=actual===''?null:available-actual;
+   const recorded=recordedSalesQty(p);
+   const diff=sold===null?null:sold-recorded;
+   const maya=costOf(p);
+   return {p,available,actual,sold,recorded,diff,saleAmount:sold===null?0:sold*Number(p.price||0),mayaAmount:sold===null?0:sold*maya,costAmount:sold===null?0:sold*Number(p.cost||0)};
+ });
+ return `<div class="panel"><div class="toolbar">
+    <button class="success" onclick="saveActualStocks()">💾 Yadda saxla</button>
+    <button class="light" onclick="clearActualStocks()">🧹 Təmizlə</button>
+    <button class="light" onclick="exportActualSalesCSV()">📄 CSV</button>
+    <button class="light" onclick="printActualSales()">🖨 Çap</button>
+   </div>
+   <div class="grid">
+    <div class="card metric"><div class="label">Ümumi mövcud</div><div class="num">${sum(rows,x=>x.available)}</div></div>
+    <div class="card metric"><div class="label">Faktiki qalıq</div><div class="num">${sum(rows,x=>x.actual===''?0:x.actual)}</div></div>
+    <div class="card metric"><div class="label">Hesablanan satış</div><div class="num green">${sum(rows,x=>x.sold===null?0:x.sold)}</div></div>
+    <div class="card metric"><div class="label">Qaimə satış</div><div class="num">${sum(rows,x=>x.recorded)}</div></div>
+    <div class="card metric"><div class="label">Satış məbləği</div><div class="num">${money(sum(rows,x=>x.saleAmount))}</div></div>
+    <div class="card metric"><div class="label">Maya məbləği</div><div class="num">${money(sum(rows,x=>x.mayaAmount))}</div></div>
+    <div class="card metric"><div class="label">Alış məbləği</div><div class="num">${money(sum(rows,x=>x.costAmount))}</div></div>
+   </div>
+   <div class="tablewrap" style="margin-top:12px"><table class="table"><thead><tr>
+    <th>Kod</th><th>Məhsul</th><th>Vahid</th><th>Ümumi</th><th>Faktiki</th><th>Hesablanan</th><th>Qaimə</th><th>Fərq</th><th>Satış məbl.</th><th>Maya məbl.</th><th>Alış məbl.</th>
+   </tr></thead><tbody>
+   ${rows.map(x=>`<tr>
+    <td>${esc(x.p.code)}</td><td>${esc(x.p.name)}</td><td>${esc(x.p.unit)}</td><td>${x.available}</td>
+    <td><input class="actual-stock-input" data-id="${x.p.id}" type="number" step=".001" min="0" value="${x.actual===''?'':x.actual}" placeholder="Qalıq"></td>
+    <td>${x.sold===null?'—':x.sold}</td><td>${x.recorded}</td>
+    <td>${x.diff===null?'—':`<span class="badge ${Math.abs(x.diff)<0.0001?'ok':'bad'}">${x.diff}</span>`}</td>
+    <td>${x.sold===null?'—':money(x.saleAmount)}</td>
+    <td>${x.sold===null?'—':money(x.mayaAmount)}</td>
+    <td>${x.sold===null?'—':money(x.costAmount)}</td>
+   </tr>`).join('')||'<tr><td colspan="11">Yoxdur</td></tr>'}
+   </tbody></table></div>
+ </div>`;
+}
+function saveActualStocks(){
+ document.querySelectorAll('.actual-stock-input').forEach(el=>{
+   const v=el.value.trim();
+   if(v==='') delete db.actualStock[el.dataset.id];
+   else db.actualStock[el.dataset.id]=Number(v)||0;
+ });
+ localStorage.setItem(KEY,JSON.stringify(db));render();toast('Yadda saxlanıldı');
+}
+function clearActualStocks(){
+ if(!confirm('Faktiki qalıqlar silinsin?'))return;
+ db.actualStock={};localStorage.setItem(KEY,JSON.stringify(db));render();
+}
+function exportActualSalesCSV(){
+ const rows=[['Kod','Məhsul','Vahid','Ümumi','Faktiki','Hesablanan','Qaimə','Fərq','Satış məbl.','Maya məbl.','Alış məbl.']];
+ db.products.forEach(p=>{
+  const available=totalAvailable(p),actual=db.actualStock[p.id]===undefined?'':Number(db.actualStock[p.id]||0),sold=actual===''?'':available-actual,recorded=recordedSalesQty(p),diff=sold===''?'':sold-recorded;
+  const maya=costOf(p);
+  rows.push([p.code,p.name,p.unit,available,actual,sold,recorded,diff,sold===''?'':sold*Number(p.price||0),sold===''?'':sold*maya,sold===''?'':sold*Number(p.cost||0)]);
+ });
+ const csv='\ufeff'+rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='Faktiki_Satis.csv';a.click();
+}
+function printActualSales(){
+ const rows=db.products.map(p=>{const available=totalAvailable(p),actual=db.actualStock[p.id]===undefined?'':Number(db.actualStock[p.id]||0),sold=actual===''?'':available-actual,recorded=recordedSalesQty(p),diff=sold===''?'':sold-recorded;return {p,available,actual,sold,recorded,diff}});
+ document.getElementById('print').innerHTML=`<div style="font-family:Arial;padding:20px"><h1>${esc(db.settings.company||'GM Collection')}</h1><h2>FAKTİKİ SATIŞ</h2><p>Tarix: ${dateNow()}</p><table class="table" border="1"><tr><th>Kod</th><th>Məhsul</th><th>Ümumi</th><th>Faktiki</th><th>Hesablanan</th><th>Qaimə</th><th>Fərq</th></tr>${rows.map(x=>`<tr><td>${esc(x.p.code)}</td><td>${esc(x.p.name)}</td><td>${x.available}</td><td>${x.actual===''?'':x.actual}</td><td>${x.sold===''?'':x.sold}</td><td>${x.recorded}</td><td>${x.diff===''?'':x.diff}</td></tr>`).join('')}</table></div>`;
+ window.print();
+}
+
+/* ============ SETTINGS ============ */
+function settingsPage(){
+  const s=db.settings||{};
+  return `<div class="panel">
+    <h2>Şirkət məlumatları</h2>
+    <div class="formgrid">
+      <div class="field wide"><label>Şirkət adı</label><input id="setCompany" value="${esc(s.company||'')}"></div>
+      <div class="field"><label>Valyuta</label><input id="setCurrency" value="${esc(s.currency||'AZN')}"></div>
+      <div class="field"><label>Telefon</label><input id="setPhone" value="${esc(s.phone||'')}"></div>
+      <div class="field wide"><label>Ünvan</label><input id="setAddress" value="${esc(s.address||'')}"></div>
+      <div class="field"><label>VÖEN</label><input id="setVoen" value="${esc(s.voen||'')}"></div>
+      <div class="field wide"><label>Loqo URL (qaimə üçün)</label><input id="setLogo" value="${esc(s.logo||'')}" placeholder="https://..."></div>
+    </div>
+    <div class="actions"><button onclick="saveSettings()">Yadda saxla</button></div>
+  </div>
+  <div class="panel">
+    <h2>Məlumat idarəsi</h2>
+    <div class="toolbar">
+      <button class="success" onclick="backup()">💾 Backup</button>
+      <button class="light" onclick="document.getElementById('restoreFile').click()">📥 Bərpa</button>
+      <button class="danger" onclick="if(confirm('Bütün məlumat silinsin?')){localStorage.removeItem(KEY);location.reload()}">🗑 Hamısını sil</button>
+    </div>
+  </div>`;
+}
+function saveSettings(){
+  db.settings=db.settings||{};
+  db.settings.company=document.getElementById('setCompany').value.trim();
+  db.settings.currency=document.getElementById('setCurrency').value.trim()||'AZN';
+  db.settings.phone=document.getElementById('setPhone').value.trim();
+  db.settings.address=document.getElementById('setAddress').value.trim();
+  db.settings.voen=document.getElementById('setVoen').value.trim();
+  db.settings.logo=document.getElementById('setLogo').value.trim();
+  save();toast('Yadda saxlanıldı');
+}
+
+/* ============ MODALS ============ */
+function modal(title,body){document.getElementById('modalTitle').textContent=title;document.getElementById('modalBody').innerHTML=body;document.getElementById('modal').classList.add('show')}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+
+function productForm(id){
+  if(id){
+    var p=db.products.find(x=>x.id===id)||{id,code:'',name:'',unit:'ədəd',maya:0,cost:0,price:0,min:0,initial:0,verilmeTarixi:''};
+    const catOpts=(db.categories||[]).map(c=>`<option value="${esc(c.name)}" ${((p.növ||p.nov)===c.name)?'selected':''}>${esc(c.name)}</option>`).join('');
+    modal('Məhsulu düzəlt',
+      '<div class="formgrid">'+
+        '<div class="field"><label>Kod</label><input id="fcode" value="'+esc(p.code)+'"></div>'+
+        '<div class="field"><label>Kateqoriya</label><select id="fnov"><option value="">Seçin</option>'+catOpts+'<option value="Digər">Digər</option></select></div>'+
+        '<div class="field wide"><label>Məhsul adı</label><input id="fname" value="'+esc(p.name)+'"></div>'+
+        '<div class="field"><label>Vahid</label><input id="funit" value="'+esc(p.unit||'ədəd')+'"></div>'+
+        '<div class="field"><label>Maya qiyməti</label><input id="fmaya" type="number" step=".01" value="'+(p.maya!=null?p.maya:(p.cost||0))+'"></div>'+
+        '<div class="field"><label>Alış qiyməti</label><input id="fcost" type="number" step=".01" value="'+(p.cost||0)+'"></div>'+
+        '<div class="field"><label>Satış qiyməti</label><input id="fprice" type="number" step=".01" value="'+(p.price||0)+'"></div>'+
+        '<div class="field"><label>Min. stok</label><input id="fmin" type="number" value="'+(p.min||0)+'"></div>'+
+        '<div class="field"><label>Baş. stok</label><input id="finit" type="number" step=".001" value="'+(p.initial||0)+'"></div>'+
+        '<div class="field"><label>Verilmə tarixi</label><input id="fdate" type="date" value="'+esc(p.verilmeTarixi||'')+'"></div>'+
+      '</div><div class="actions"><button onclick="saveProduct(\''+p.id+'\')">Yadda saxla</button></div>');
+    setTimeout(()=>{const s=document.getElementById('fnov');if(s)s.value=p.növ||p.nov||'';},0);
+    return;
+  }
+  modal('Bir neçə məhsul əlavə et',
+    '<p class="muted">Boş sətirlər keçilir.</p><div id="multiProductRows"></div>'+
+    '<div class="actions" style="margin-top:12px"><button class="light" onclick="addMultiProductRow()">+ Sətir</button> <button onclick="saveMultiProducts()">Yadda saxla</button></div>');
+  addMultiProductRow();addMultiProductRow();addMultiProductRow();
+}
+function saveProduct(id){
+  var p=db.products.find(x=>x.id===id);if(!p){p={id};db.products.push(p);}
+  const oldInit=Number(p.initial||0);
+  p.code=(document.getElementById('fcode')?.value||'').trim();
+  p.name=(document.getElementById('fname')?.value||'').trim();
+  p.növ=(document.getElementById('fnov')?.value||'').trim();
+  delete p.nov;
+  p.unit=(document.getElementById('funit')?.value||'').trim()||'ədəd';
+  p.maya=parseFloat(document.getElementById('fmaya')?.value)||0;
+  p.cost=parseFloat(document.getElementById('fcost')?.value)||0;
+  p.alis=p.cost;
+  p.price=parseFloat(document.getElementById('fprice')?.value)||0;
+  p.min=parseFloat(document.getElementById('fmin')?.value)||0;
+  p.initial=parseFloat(document.getElementById('finit')?.value)||0;
+  p.verilmeTarixi=(document.getElementById('fdate')?.value)||'';
+  const diff=p.initial-oldInit;
+  if(diff!==0) logStock(p.id,diff,'manual-edit','','İlkin stok düzəlişi');
+  closeModal();save();toast('Yadda saxlanıldı');
+}
+function addMultiProductRow(){
+  const host=document.getElementById('multiProductRows');if(!host)return;
+  const row=document.createElement('div');row.className='formgrid';
+  row.style.marginBottom='10px';row.style.borderBottom='1px solid #e5e7eb';row.style.paddingBottom='10px';
+  const catOpts=(db.categories||[]).map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');
+  row.innerHTML=`
+    <div class="field"><label>Kod</label><input class="mp-code"></div>
+    <div class="field"><label>Kateqoriya</label><select class="mp-nov"><option value="">Seçin</option>${catOpts}<option value="Digər">Digər</option></select></div>
+    <div class="field wide"><label>Ad</label><input class="mp-name"></div>
+    <div class="field"><label>Vahid</label><input class="mp-unit" value="ədəd"></div>
+    <div class="field"><label>Maya</label><input class="mp-cost" type="number" step=".01"></div>
+    <div class="field"><label>Alış</label><input class="mp-alis" type="number" step=".01"></div>
+    <div class="field"><label>Satış</label><input class="mp-price" type="number" step=".01"></div>
+    <div class="field"><label>Miqdar</label><input class="mp-initial" type="number" step=".001"></div>
+    <div class="field"><label>Verilmə tarixi</label><input class="mp-date" type="date"></div>
+  `;
+  host.appendChild(row);
+}
+function saveMultiProducts(){
+  const rows=document.querySelectorAll('#multiProductRows .formgrid');
+  let added=0;
+  rows.forEach(r=>{
+    const name=r.querySelector('.mp-name').value.trim();
+    if(!name)return;
+    const p={id:uid(),code:r.querySelector('.mp-code').value.trim(),name,növ:r.querySelector('.mp-nov').value.trim(),
+      unit:r.querySelector('.mp-unit').value.trim()||'ədəd',maya:+r.querySelector('.mp-cost').value||0,
+      cost:+r.querySelector('.mp-alis').value||0,alis:+r.querySelector('.mp-alis').value||0,
+      price:+r.querySelector('.mp-price').value||0,min:0,initial:+r.querySelector('.mp-initial').value||0,
+      verilmeTarixi:r.querySelector('.mp-date')?.value||''};
+    db.products.push(p);
+    if(p.initial!==0) logStock(p.id,p.initial,'initial','','İlkin stok');
+    added++;
+  });
+  if(!added){toast('Heç nə daxil edilmədi','bad');return;}
+  closeModal();save();toast(added+' məhsul əlavə olundu');
+}
+
+/* ============ INVOICE ============ */
+function openInvoice(type='sale',draft=null){
+  window.__editingInvoiceId=draft?.id||null;
+  const partyOptions=()=>{let a=type==='sale'?db.customers:db.suppliers;return a.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')};
+  const no=draft?.no||nextNo(),date=draft?.date||dateNow(),party=draft?.party||'';
+  const globalDeliveryDate = draft?.deliveryDate || date;
+  modal(type==='sale'?'Satış qaiməsi':'Alış qaiməsi',
+    `<div class="formgrid">
+       <div class="field"><label>Qaimə №</label><input id="ino" value="${esc(no)}" readonly></div>
+       <div class="field"><label>Qaimə tarixi</label><input id="idate" type="date" value="${esc(date)}"></div>
+       <div class="field"><label>Verilmə tarixi (ümumi)</label><input id="ideliveryDate" type="date" value="${esc(globalDeliveryDate)}"></div>
+       <div class="field wide"><label>${type==='sale'?'Müştəri':'Təchizatçı'}</label><select id="iparty"><option value="">Seçin</option>${partyOptions()}</select></div>
+     </div>
+     <div style="margin-top:15px" id="invoiceItems"></div>
+     <div class="actions"><button class="light" onclick="addInvoiceRow('${type}')">+ Sətir</button><button onclick="saveInvoice('${type}')">Yadda saxla</button></div>`);
+  document.getElementById('iparty').value=party;
+  if(draft?.items?.length) draft.items.forEach(item=>addInvoiceRow(type,item));
+  else {addInvoiceRow(type);addInvoiceRow(type);addInvoiceRow(type);}
+}
+
+function addInvoiceRow(type='sale',item=null){
+  let host=document.getElementById('invoiceItems'),row=document.createElement('div');
+  row.className='formgrid';row.style.marginBottom='8px';
+  let preCode=item?.code||'',preName=item?.name||'',prePid=item?.productId||'';
+  if(prePid){const p=db.products.find(x=>x.id===prePid);if(p){preCode=p.code||'';preName=p.name||'';}}
+  const catOpts=(db.categories||[]).map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');
+  const wrapId='codeWrap_'+uid();
+  row.innerHTML=`
+    <div class="field code-wrap" id="${wrapId}">
+      <label>Kod</label>
+      <input class="ii-code" type="text" autocomplete="off" placeholder="Kod yazın..." value="${esc(preCode)}">
+      <div class="code-dropdown" id="dd_${wrapId}"></div>
+    </div>
+    <div class="field wide"><label>Məhsul adı</label><input class="ii-name" value="${esc(preName)}"></div>
+    <div class="field"><label>Miqdar</label><input class="ii-qty" type="number" step=".001" value="${item?.qty||1}"></div>
+    <div class="field"><label>Maya</label><input class="ii-maya" type="number" step=".01"></div>
+    <div class="field"><label>Alış</label><input class="ii-alis" type="number" step=".01"></div>
+    <div class="field"><label>Satış</label><input class="ii-sale-price" type="number" step=".01"></div>
+    <div class="field"><label>Kateqoriya</label><select class="ii-nov"><option value="">Seçin</option>${catOpts}</select></div>
+    <div class="field"><label>Endirim</label><input class="ii-discount" type="number" step=".01" value="${item?.discount||0}"></div>
+    <input type="hidden" class="ii-product" value="${prePid}">
+    <input type="hidden" class="ii-date" value="${item?.date||''}">
+  `;
+  host.appendChild(row);
+  const codeInput=row.querySelector('.ii-code'),nameInput=row.querySelector('.ii-name'),
+    mayaInput=row.querySelector('.ii-maya'),alisInput=row.querySelector('.ii-alis'),
+    salePriceInput=row.querySelector('.ii-sale-price'),novInput=row.querySelector('.ii-nov'),
+    hiddenPid=row.querySelector('.ii-product'),dateInput=row.querySelector('.ii-date'),
+    dropdown=row.querySelector('.code-dropdown');
+
+  const globalDateEl=document.getElementById('ideliveryDate');
+  if(globalDateEl && dateInput && !dateInput.value){
+    dateInput.value = globalDateEl.value;
+  }
+
+  const resetRow = () => {
+    hiddenPid.value='';
+    nameInput.value='';
+    mayaInput.value='';
+    alisInput.value='';
+    salePriceInput.value='';
+    novInput.value='';
+    if(dateInput){
+      const gd=document.getElementById('ideliveryDate');
+      dateInput.value = gd ? gd.value : '';
+    }
+  };
+
+  const fillProduct = (p) => {
+    hiddenPid.value=p.id;
+    nameInput.value=p.name||'';
+    mayaInput.value=p.maya!=null?p.maya:(p.cost||0);
+    alisInput.value=p.alis!=null?p.alis:(p.cost||0);
+    salePriceInput.value=p.price||0;
+    novInput.value=p.növ||p.nov||'';
+    if(dateInput){
+      const gd=document.getElementById('ideliveryDate');
+      dateInput.value = gd?.value || p.verilmeTarixi || '';
+    }
+  };
+
+  const closeDropdown = () => {
+    dropdown.classList.remove('show');
+    dropdown.innerHTML='';
+  };
+
+  const openDropdown = (query) => {
+    const q = (query||'').trim().toLowerCase();
+    let matches;
+    if(!q){
+      matches = db.products.slice(0,20);
+    } else {
+      matches = db.products.filter(p => 
+        (p.code||'').toLowerCase().includes(q) || 
+        (p.name||'').toLowerCase().includes(q)
+      ).slice(0,20);
+    }
+    if(!matches.length){
+      dropdown.innerHTML = '<div class="co-empty">Tapılmadı</div>';
+      dropdown.classList.add('show');
+      return;
+    }
+    dropdown.innerHTML = matches.map((p,i) => `
+      <div class="code-option" data-pid="${p.id}" data-idx="${i}">
+        <span class="co-code">${esc(p.code||'')}</span>
+        <span class="co-name">${esc(p.name||'')}</span>
+      </div>
+    `).join('');
+    dropdown.classList.add('show');
+    dropdown.querySelectorAll('.code-option').forEach(el => {
+      el.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const pid = el.dataset.pid;
+        const product = db.products.find(x => x.id === pid);
+        if(product){
+          codeInput.value = product.code || '';
+          fillProduct(product);
+          closeDropdown();
+        }
+      });
+    });
+  };
+
+  codeInput.addEventListener('input', () => {
+    const q = codeInput.value.trim();
+    if(!q){
+      resetRow();
+      openDropdown('');
+      return;
+    }
+    // Tam uyğunluq varsa avtomatik doldur
+    const exact = db.products.find(p => (p.code||'').trim().toLowerCase() === q.toLowerCase());
+    if(exact){
+      fillProduct(exact);
+    } else {
+      // Yoxsa, sadəcə hidden pid sıfırla (adı silmə, istifadəçi davam edə bilər)
+      hiddenPid.value='';
+    }
+    openDropdown(q);
+  });
+
+  codeInput.addEventListener('focus', () => {
+    openDropdown(codeInput.value);
+  });
+
+  codeInput.addEventListener('blur', () => {
+    setTimeout(closeDropdown, 150);
+  });
+
+  codeInput.addEventListener('keydown', (e) => {
+    const items = dropdown.querySelectorAll('.code-option');
+    if(!items.length) return;
+    let active = dropdown.querySelector('.code-option.active');
+    let idx = active ? +active.dataset.idx : -1;
+    if(e.key === 'ArrowDown'){
+      e.preventDefault();
+      idx = (idx + 1) % items.length;
+      items.forEach(it => it.classList.remove('active'));
+      items[idx].classList.add('active');
+      items[idx].scrollIntoView({block:'nearest'});
+    } else if(e.key === 'ArrowUp'){
+      e.preventDefault();
+      idx = idx <= 0 ? items.length-1 : idx-1;
+      items.forEach(it => it.classList.remove('active'));
+      items[idx].classList.add('active');
+      items[idx].scrollIntoView({block:'nearest'});
+    } else if(e.key === 'Enter'){
+      e.preventDefault();
+      if(idx >= 0 && items[idx]){
+        items[idx].dispatchEvent(new MouseEvent('mousedown'));
+      }
+    } else if(e.key === 'Escape'){
+      closeDropdown();
+    }
+  });
+
+  if(item){
+    const p=prePid?db.products.find(x=>x.id===prePid):null;
+    if(p){
+      nameInput.value=p.name||preName||'';
+      mayaInput.value=item.maya??(p.maya!=null?p.maya:(p.cost||0));
+      alisInput.value=item.alis??(p.alis!=null?p.alis:(p.cost||0));
+      salePriceInput.value=item.salePrice??(p.price||0);
+      novInput.value=item.nov??p.növ??p.nov??'';
+      if(dateInput)dateInput.value=item.date||p.verilmeTarixi||'';
+    } else if(preCode){
+      const exact=db.products.find(x=>(x.code||'').trim().toLowerCase()===preCode.toLowerCase());
+      if(exact) fillProduct(exact);
+    }
+  } else if(preCode){
+    const exact=db.products.find(x=>(x.code||'').trim().toLowerCase()===preCode.toLowerCase());
+    if(exact) fillProduct(exact);
+  }
+}
+
+function saveInvoice(type){
+  let party=document.getElementById('iparty').value;
+  let rows=[...document.querySelectorAll('#invoiceItems .formgrid')];
+  let items=[];const existingId=window.__editingInvoiceId||null;
+  const globalDate = document.getElementById('ideliveryDate')?.value || '';
+  rows.forEach(r=>{
+    const code=(r.querySelector('.ii-code')?.value||'').trim();
+    const name=(r.querySelector('.ii-name')?.value||'').trim();
+    const qty=+r.querySelector('.ii-qty').value||0;
+    const maya=+r.querySelector('.ii-maya')?.value||0;
+    const alis=+r.querySelector('.ii-alis')?.value||0;
+    const salePrice=+r.querySelector('.ii-sale-price')?.value||0;
+    const discount=+r.querySelector('.ii-discount').value||0;
+    const nov=(r.querySelector('.ii-nov')?.value||'').trim();
+    const dateVal = globalDate || (r.querySelector('.ii-date')?.value||'').trim();
+    let pid=r.querySelector('.ii-product')?.value||'';
+    if(!name||qty<=0)return;
+    let product=pid?db.products.find(p=>p.id===pid):null;
+    if(!product||product.name!==name){
+      product=db.products.find(p=>(p.code||'').toLowerCase()===code.toLowerCase()&&(p.name||'').toLowerCase()===name.toLowerCase());
+      if(!product){
+        product={id:uid(),code,name,növ:nov,unit:'ədəd',maya,cost:alis,alis,price:salePrice,min:0,initial:0,verilmeTarixi:dateVal};
+        db.products.push(product);
+      }
+    }
+    product.maya=maya;product.cost=alis;product.alis=alis;product.price=salePrice;
+    product.növ=nov||product.növ||'';if(dateVal)product.verilmeTarixi=dateVal;
+    const priceForInvoice=type==='purchase'?alis:salePrice;
+    items.push({productId:product.id,code,name,qty,maya,alis,salePrice,price:priceForInvoice,discount,vat:0,nov,date:dateVal});
+  });
+  if(!items.length){toast('Ən azı bir sətir','bad');return;}
+  let p=(type==='sale'?db.customers:db.suppliers).find(x=>x.id===party);
+  if(existingId){
+    const inv=db.invoices.find(x=>x.id===existingId);
+    if(inv){
+      (inv.items||[]).forEach(x=>logStock(x.productId,(inv.type==='purchase'?-1:1)*x.qty,'invoice-edit-revert',inv.id,inv.no));
+      inv.no=document.getElementById('ino').value;inv.date=document.getElementById('idate').value;
+      inv.deliveryDate = globalDate;
+      inv.type=type;inv.partyId=party;inv.partyName=p?.name||'';inv.items=items;
+      items.forEach(x=>logStock(x.productId,(type==='purchase'?1:-1)*x.qty,'invoice-edit',inv.id,inv.no));
+    }
+    window.__editingInvoiceId=null;closeModal();save();toast('Qaimə düzəldildi');
+  } else {
+    const no=document.getElementById('ino').value;
+    const newInv={id:uid(),no,date:document.getElementById('idate').value,deliveryDate:globalDate,type,partyId:party,partyName:p?.name||'',items};
+    db.invoices.push(newInv);
+    items.forEach(x=>logStock(x.productId,(type==='purchase'?1:-1)*x.qty,'invoice',newInv.id,no));
+    closeModal();save();toast('Qaimə yadda saxlanıldı');
+  }
+}
+function editInvoice(id){
+  const inv=db.invoices.find(x=>x.id===id);if(!inv)return;
+  openInvoice(inv.type,{id:inv.id,no:inv.no,date:inv.date,deliveryDate:inv.deliveryDate||inv.date,party:inv.partyId,items:inv.items||[]});
+}
+function deleteInvoice(id){
+  const inv=db.invoices.find(x=>x.id===id);if(!inv)return;
+  if(!confirm('"'+inv.no+'" silinsin?\nStok geri düzəldiləcək.'))return;
+  (inv.items||[]).forEach(x=>logStock(x.productId,(inv.type==='purchase'?-1:1)*x.qty,'invoice-delete',inv.id,inv.no));
+  db.invoices=db.invoices.filter(x=>x.id!==id);save();toast('Silindi');
+}
+
+/* ============ PRINT / SHARE ============ */
+function printInvoice(id){
+ let i=db.invoices.find(x=>x.id===id),pm=productMap();if(!i)return;
+ const logo=db.settings.logo?`<img src="${esc(db.settings.logo)}" style="max-height:60px">`:'';
+ const qrData=JSON.stringify({no:i.no,date:i.date,party:i.partyName,total:invTotal(i)});
+ 
+ // Miqdar cəmi
+ const totalQty = sum(i.items||[], x => Number(x.qty)||0);
+ 
+ document.getElementById('print').innerHTML=`<div style="font-family:Arial;padding:25px">
+  <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #102a43;padding-bottom:12px">
+    <div>${logo}<h1 style="margin:6px 0">GM Collection</h1>
+    <div style="font-size:12px;color:#555">${esc(db.settings.phone||'')} ${db.settings.address?' • '+esc(db.settings.address):''} ${db.settings.voen?' • VÖEN: '+esc(db.settings.voen):''}</div></div>
+    <div style="text-align:right"><h2 style="margin:0">${i.type==='sale'?'SATIŞ':'ALIŞ'} QAİMƏSİ</h2>
+    <div><b>№ ${esc(i.no)}</b></div><div>${i.date}${i.deliveryDate?' → '+i.deliveryDate:''}</div></div>
+  </div>
+  <p style="margin-top:14px"><b>Tərəf:</b> ${esc(i.partyName||'-')}</p>
+  <table class="table" border="1" style="margin-top:10px">
+    <tr style="background:#f0f4f8"><th>#</th><th>Kod</th><th>Məhsul</th><th>Növ</th><th>Miqdar</th><th>Alış</th><th>Satış</th><th>Endirim</th><th>Məbləğ</th></tr>
+    ${i.items.map((x,n)=>{
+      const p=pm[x.productId];
+      const nov = x.nov || p?.növ || p?.nov || '';
+      const alis=x.alis!=null?x.alis:(p?.alis||p?.cost||0);
+      const sale=x.salePrice!=null?x.salePrice:(p?.price||0);
+      const linePrice=i.type==='purchase'?alis:sale;
+      return `<tr><td>${n+1}</td><td>${esc(x.code||p?.code||'')}</td><td>${esc(x.name||p?.name||'')}</td><td>${esc(nov)}</td><td>${x.qty}</td><td>${money(alis)}</td><td>${money(sale)}</td><td>${money(x.discount)}</td><td>${money(x.qty*linePrice-(x.discount||0))}</td></tr>`;
+    }).join('')}
+    <tr style="font-weight:700;background:#f0f4f8">
+      <td colspan="4" style="text-align:right">CƏMİ:</td>
+      <td>${totalQty}</td>
+      <td colspan="4"></td>
+    </tr>
+  </table>
+  <h2 style="text-align:right;margin-top:14px">YEKUN: ${money(invTotal(i))}</h2>
+  <div style="margin-top:40px;display:flex;justify-content:space-between;align-items:flex-end">
+    <div style="font-size:11px;color:#777">Satıcı: ____________<br><br>Müştəri: ____________</div>
+    <div style="text-align:right"><div style="font-size:11px;color:#777">QR kod:</div><canvas id="qrPrint"></canvas></div>
+  </div>
+ </div>`;
+ 
+ // Çap pəncərəsini aç
+ const printWindow = window.open('', '_blank');
+ printWindow.document.write(`<!DOCTYPE html><html><head><title>Qaimə</title>
+   <style>
+     @page { size: A4; margin: 10mm; }
+     body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+     @media print { body { margin: 0; } }
+   </style>
+ </head><body>${document.getElementById('print').innerHTML}</body></html>`);
+ printWindow.document.close();
+ setTimeout(() => {
+   if(typeof QRCode!=='undefined' && printWindow.document.getElementById('qrPrint')){
+     QRCode.toCanvas(printWindow.document.getElementById('qrPrint'), qrData, {width:100});
+   }
+   printWindow.focus();
+   printWindow.print();
+ }, 500);
+}
+function shareWhatsApp(id){
+  const i=db.invoices.find(x=>x.id===id);if(!i)return;
+  const lines=[`*${db.settings.company||'GM Collection'}*`,`${i.type==='sale'?'Satış':'Alış'} qaiməsi № ${i.no}`,`Tarix: ${i.date}`,`Tərəf: ${i.partyName||'-'}`,''];
+  (i.items||[]).forEach((x,n)=>{
+    const p=db.products.find(z=>z.id===x.productId);
+    lines.push(`${n+1}. ${x.name||p?.name||''} — ${x.qty} x ${x.price} = ${(x.qty*x.price-(x.discount||0)).toFixed(2)}`);
+  });
+  lines.push('',`*YEKUN: ${invTotal(i).toFixed(2)} AZN*`);
+  const txt=encodeURIComponent(lines.join('\n'));
+  window.open('https://wa.me/?text='+txt,'_blank');
+}
+function printReport(){
+  const v=document.getElementById('reportMonth')?.value||dateNow().slice(0,7);
+  const {y,m,result}=monthReportData(v);
+  const rows=result.filter(x=>x.opening!==0||x.purchases!==0||x.sales!==0||x.closing!==0||x.salesAmount!==0);
+  document.getElementById('print').innerHTML=`<div style="font-family:Arial;padding:20px"><h1>${esc(db.settings.company||'GM Collection')}</h1><h2>AYLIQ HESABAT — ${String(m).padStart(2,'0')}/${y}</h2><p>Tarix: ${dateNow()}</p><table class="table" border="1"><tr><th>Kod</th><th>Məhsul</th><th>Vahid</th><th>Ay əvvəli</th><th>Alış</th><th>Satış</th><th>Qaytarma</th><th>Ay sonu</th><th>Satış məbləği</th><th>Qalıq dəyəri</th></tr>${rows.map(x=>`<tr><td>${esc(x.p.code)}</td><td>${esc(x.p.name)}</td><td>${esc(x.p.unit)}</td><td>${x.opening}</td><td>${x.purchases}</td><td>${x.sales}</td><td>${x.returns}</td><td>${x.closing}</td><td>${money(x.salesAmount)}</td><td>${money(x.stockValue)}</td></tr>`).join('')}</table></div>`;
+ window.print();
+}
+
+/* ============ EXPORT / IMPORT ============ */
+function exportCSV(kind){
+ let rows=[],name=kind;
+ if(kind==='products'){rows=[['Kod','Məhsul','Növ','Vahid','Maya','Alış','Satış','Qalıq'],...db.products.map(p=>[p.code,p.name,p.növ||p.nov||'',p.unit,costOf(p),p.cost,p.price,stock(p)])]}
+ else if(kind==='customers'){rows=[['Kod','Ad','Telefon','Borc'],...db.customers.map(p=>[p.code,p.name,p.phone,customerBalance(p.id)])]}
+ else if(kind==='suppliers'){rows=[['Kod','Ad','Telefon','Borc'],...db.suppliers.map(p=>[p.code,p.name,p.phone,supplierBalance(p.id)])]}
+ else if(kind==='invoices'){rows=[['Qaimə','Tarix','Növ','Tərəf','Məbləğ'],...db.invoices.map(i=>[i.no,i.date,i.type,i.partyName,invTotal(i)])]}
+ else if(kind==='payments'){rows=[['Tarix','Növ','Tərəf','Məbləğ','Üsul'],...db.payments.map(x=>[x.date,x.type,x.partyName,x.amount,x.method])]}
+ else if(kind==='expenses'){rows=[['Tarix','Kateqoriya','Məbləğ','Açıqlama'],...db.expenses.map(x=>[x.date,x.category,x.amount,x.note])]}
+ else {
+  let v=document.getElementById('reportMonth')?.value||dateNow().slice(0,7);
+  let d=monthReportData(v);
+  rows=[['Kod','Məhsul','Vahid','Ay əvvəli','Alış','Satış','Qaytarma','Ay sonu','Satış məbləği','Qalıq dəyəri'],
+    ...d.result.map(x=>[x.p.code,x.p.name,x.p.unit,x.opening,x.purchases,x.sales,x.returns,x.closing,x.salesAmount,x.stockValue])];
+ }
+ const csv='\ufeff'+rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+ let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='BiznesPro_'+name+'.csv';a.click();
+}
+function exportProductsExcel(){
+  if(typeof XLSX==='undefined'){toast('Excel kitabxanası yüklənməyib','bad');return;}
+  const data=[['Malların siyahısı'],[],['Kod','Məhsul','Növ','Vahid','Maya','Alış','Satış','Qalıq','Maya dəyəri','Alış dəyəri','Satış dəyəri','Verilmə tarixi']];
+  db.products.forEach(p=>{
+    const st=stock(p),maya=costOf(p),cost=Number(p.cost||0),price=Number(p.price||0);
+    data.push([p.code||'',p.name||'',p.növ||p.nov||'',p.unit||'',maya,cost,price,st,st*maya,st*cost,st*price,p.verilmeTarixi||'']);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(data);ws['!cols']=[{wch:12},{wch:30},{wch:15},{wch:10},{wch:12},{wch:12},{wch:12},{wch:10},{wch:14},{wch:14},{wch:14},{wch:14}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Mallar');XLSX.writeFile(wb,'Mallar.xlsx');
+}
+function importProductsExcel(input){
+  if(typeof XLSX==='undefined'){toast('Excel kitabxanası yoxdur','bad');input.value='';return;}
+  var file=input.files&&input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=new Uint8Array(e.target.result);
+      var wb=XLSX.read(data,{type:'array'});
+      var sheet=wb.Sheets[wb.SheetNames[0]];
+      var rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:''});
+      if(!rows.length){toast('Fayl boşdur','bad');input.value='';return;}
+      var headerRow=0;
+      for(var i=0;i<Math.min(10,rows.length);i++){
+        var r=rows[i].map(c=>String(c).toLowerCase().trim());
+        if(r.some(c=>c.indexOf('kod')>=0||c.indexOf('məhsul')>=0||c.indexOf('mehsul')>=0||c.indexOf('ad')>=0)){headerRow=i;break;}
+      }
+      var headers=rows[headerRow].map(h=>String(h).toLowerCase().trim());
+      function col(names){for(var n=0;n<names.length;n++){for(var h=0;h<headers.length;h++){if(headers[h].indexOf(names[n])>=0)return h;}}return -1;}
+      var iCode=col(['kod','code']),iName=col(['məhsul','mehsul','ad','name']),iNov=col(['növ','nov','tip','kateqoriya']),
+          iUnit=col(['vahid','unit']),iMaya=col(['maya']),iCost=col(['alış','alis','cost']),iPrice=col(['satış','satis','price']),
+          iMin=col(['minimum','min']),iInit=col(['başlanğıc','baslangic','ilkin','initial','stok']),iDate=col(['verilmə','verilme','tarix','date']);
+      var added=0,skipped=0;
+      for(var r=headerRow+1;r<rows.length;r++){
+        var row=rows[r];if(!row||!row.length)continue;
+        var name=iName>=0?String(row[iName]||'').trim():'';
+        var code=iCode>=0?String(row[iCode]||'').trim():'';
+        if(!name&&!code){skipped++;continue;}
+        var costVal=iCost>=0?(parseFloat(row[iCost])||0):0;
+        var newP={id:uid(),code,name:name||code,növ:iNov>=0?String(row[iNov]||'').trim():'',
+          unit:iUnit>=0?(String(row[iUnit]||'').trim()||'ədəd'):'ədəd',
+          maya:iMaya>=0?(parseFloat(row[iMaya])||0):0,cost:costVal,alis:costVal,
+          price:iPrice>=0?(parseFloat(row[iPrice])||0):0,min:iMin>=0?(parseFloat(row[iMin])||0):0,
+          initial:iInit>=0?(parseFloat(row[iInit])||0):0,verilmeTarixi:iDate>=0?String(row[iDate]||'').trim():''};
+        db.products.push(newP);
+        if(newP.initial!==0) logStock(newP.id,newP.initial,'import','','Excel idxal');
+        added++;
+      }
+      save();input.value='';toast(added+' məhsul əlavə olundu');
+    }catch(err){console.error(err);input.value='';toast('Excel oxunmadı: '+err.message,'bad');}
+  };
+  reader.readAsArrayBuffer(file);
+}
+function importParties(type){
+  if(typeof XLSX==='undefined'){toast('Excel kitabxanası yoxdur','bad');return;}
+  const input=document.createElement('input');
+  input.type='file';input.accept='.xlsx,.xls,.csv';
+  input.onchange=function(){
+    const file=input.files&&input.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        const data=new Uint8Array(e.target.result);
+        const wb=XLSX.read(data,{type:'array'});
+        const sheet=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:''});
+        if(!rows.length){toast('Boşdur','bad');return;}
+        const headers=rows[0].map(h=>String(h).toLowerCase().trim());
+        function col(names){for(let n=0;n<names.length;n++)for(let h=0;h<headers.length;h++)if(headers[h].indexOf(names[n])>=0)return h;return -1;}
+        const iCode=col(['kod','code']),iName=col(['ad','name','şirkət']),iPhone=col(['telefon','phone','tel']),iAddr=col(['ünvan','unvan','address']);
+        const arr=type==='customer'?db.customers:db.suppliers;
+        let added=0;
+        for(let r=1;r<rows.length;r++){
+          const row=rows[r];if(!row)continue;
+          const name=iName>=0?String(row[iName]||'').trim():'';
+          if(!name)continue;
+          arr.push({id:uid(),code:iCode>=0?String(row[iCode]||'').trim():'',name,
+            phone:iPhone>=0?String(row[iPhone]||'').trim():'',address:iAddr>=0?String(row[iAddr]||'').trim():''});
+          added++;
+        }
+        save();toast(added+' '+type+' əlavə olundu');
+      }catch(err){toast('Xəta: '+err.message,'bad');}
+    };
+    reader.readAsArrayBuffer(file);
+  };
+  input.click();
+}
+function backup(){
+ const payload={version:'BiznesPro-v6',createdAt:new Date().toISOString(),data:db};
+ const a=document.createElement('a');
+ const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));
+ a.href=url;a.download='BiznesPro_Backup_'+dateNow()+'.json';a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function restore(input){
+ const f=input.files&&input.files[0];if(!f)return;
+ if(!confirm('Mövcud məlumatlar əvəz olunacaq. Davam?')){input.value='';return}
+ const r=new FileReader();
+ r.onload=()=>{
+  try{
+   const raw=JSON.parse(r.result);
+   const candidate=raw&&raw.data&&typeof raw.data==='object'?raw.data:raw;
+   if(!candidate||!Array.isArray(candidate.products)||!Array.isArray(candidate.invoices))throw new Error('invalid');
+   db={
+    products:candidate.products||[],customers:candidate.customers||[],suppliers:candidate.suppliers||[],
+    invoices:candidate.invoices||[],payments:candidate.payments||[],expenses:candidate.expenses||[],
+    cash:candidate.cash||[],actualStock:candidate.actualStock||{},stockLog:candidate.stockLog||[],
+    categories:candidate.categories||[],returns:candidate.returns||[],
+    settings:candidate.settings||{company:'BiznesPro',currency:'AZN'}
+   };
+   migrate();
+   localStorage.setItem(KEY,JSON.stringify(db));input.value='';render();toast('Bərpa edildi');
+  }catch(err){input.value='';toast('Fayl düzgün deyil','bad');}
+ };
+ r.readAsText(f);
+}
+function migrate(){
+  (db.products||[]).forEach(p=>{
+    if(p.maya==null)p.maya=0;
+    if(p.alis==null)p.alis=Number(p.cost||0);
+    if(p.cost==null)p.cost=Number(p.alis||0);
+    if(p.verilmeTarixi==null)p.verilmeTarixi='';
+  });
+  (db.invoices||[]).forEach(inv=>(inv.items||[]).forEach(item=>{
+    const p=db.products.find(x=>x.id===item.productId);
+    if(item.maya==null)item.maya=p?.maya??0;
+    if(item.alis==null)item.alis=p?.alis??p?.cost??0;
+    if(item.salePrice==null)item.salePrice=p?.price??item.price??0;
+    if(item.date==null)item.date='';
+  }));
+}
+
+/* ============ GLOBAL SEARCH ============ */
+function openSearch(){
+  document.getElementById('searchOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('globalSearchInput').focus(),50);
+}
+function closeSearch(){document.getElementById('searchOverlay').classList.remove('show');document.getElementById('searchResults').innerHTML='';}
+function runSearch(q){
+  q=(q||'').toLowerCase().trim();
+  const box=document.getElementById('searchResults');
+  if(!q){box.innerHTML='';return;}
+  const out=[];
+  db.products.forEach(p=>{
+    if(((p.name||'')+' '+(p.code||'')).toLowerCase().includes(q)){
+      out.push({t:'📦 '+esc(p.code||'')+' — '+esc(p.name),s:'Məhsul • Qalıq: '+stock(p),fn:`go('products')`});
+    }
+  });
+  db.customers.forEach(c=>{
+    if(((c.name||'')+' '+(c.phone||'')+' '+(c.code||'')).toLowerCase().includes(q))
+      out.push({t:'👤 '+esc(c.name),s:'Müştəri • '+esc(c.phone||''),fn:`go('customers')`});
+  });
+  db.suppliers.forEach(s=>{
+    if(((s.name||'')+' '+(s.phone||'')+' '+(s.code||'')).toLowerCase().includes(q))
+      out.push({t:'🚚 '+esc(s.name),s:'Təchizatçı • '+esc(s.phone||''),fn:`go('suppliers')`});
+  });
+  db.invoices.forEach(i=>{
+    if(((i.no||'')+' '+(i.partyName||'')).toLowerCase().includes(q))
+      out.push({t:'🧾 '+esc(i.no)+' — '+esc(i.partyName||''),s:'Qaimə • '+i.date+' • '+money(invTotal(i)),fn:`go('invoices')`});
+  });
+  box.innerHTML=out.slice(0,30).map((r,idx)=>`<div class="search-item" onclick="closeSearch();${r.fn}"><div class="tt">${r.t}</div><div class="ss">${r.s}</div></div>`).join('')||'<p class="muted" style="padding:14px">Nəticə yoxdur</p>';
+}
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openSearch();}
+  if(e.key==='Escape')closeSearch();
+});
+document.getElementById('searchOverlay').addEventListener('click',e=>{if(e.target.id==='searchOverlay')closeSearch()});
+
+/* ============ INIT ============ */
+function deleteAllProducts(){
+  if(!db.products.length){toast('Boşdur','bad');return;}
+  if(!confirm('Bütün məhsullar ('+db.products.length+') silinsin?'))return;
+  db.products=[];save();toast('Silindi');
+}
+function paymentForm(){modal('Ödəniş',`<div class="formgrid">
+  <div class="field"><label>Tarix</label><input id="paydate" type="date" value="${dateNow()}"></div>
+  <div class="field"><label>Növ</label><select id="paytype" onchange="fillPayParty()"><option value="customer">Müştəri ödənişi</option><option value="supplier">Təchizatçı ödənişi</option></select></div>
+  <div class="field wide"><label>Tərəf</label><select id="payparty"></select></div>
+  <div class="field"><label>Məbləğ</label><input id="payamount" type="number" step=".01"></div>
+  <div class="field"><label>Üsul</label><select id="paymethod"><option>Nağd</option><option>Bank</option><option>Kart</option></select></div>
+</div><div class="actions"><button onclick="savePayment()">Yadda saxla</button></div>`);fillPayParty()}
+function fillPayParty(){let t=document.getElementById('paytype').value,a=t==='customer'?db.customers:db.suppliers;document.getElementById('payparty').innerHTML=a.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}
+function savePayment(){let t=paytype.value,a=t==='customer'?db.customers:db.suppliers,p=a.find(x=>x.id===payparty.value);if(!p){toast('Tərəf yoxdur','bad');return}db.payments.push({id:uid(),date:paydate.value,type:t,partyId:p.id,partyName:p.name,amount:+payamount.value||0,method:paymethod.value});closeModal();save();toast('Ödəniş saxlanıldı')}
+function cashForm(){modal('Kassa',`<div class="formgrid">
+  <div class="field"><label>Tarix</label><input id="cdate" type="date" value="${dateNow()}"></div>
+  <div class="field"><label>Növ</label><select id="ctype"><option value="in">Giriş</option><option value="out">Çıxış</option></select></div>
+  <div class="field"><label>Məbləğ</label><input id="camount" type="number" step=".01"></div>
+  <div class="field wide"><label>Açıqlama</label><input id="cnote"></div>
+</div><div class="actions"><button onclick="saveCash()">Yadda saxla</button></div>`)}
+function saveCash(){db.cash.push({id:uid(),date:cdate.value,type:ctype.value,amount:+camount.value||0,note:cnote.value});closeModal();save();toast('Saxlanıldı')}
+function expenseForm(){modal('Xərc',`<div class="formgrid">
+  <div class="field"><label>Tarix</label><input id="edate" type="date" value="${dateNow()}"></div>
+  <div class="field"><label>Kateqoriya</label><input id="ecat"></div>
+  <div class="field"><label>Məbləğ</label><input id="eamount" type="number" step=".01"></div>
+  <div class="field wide"><label>Açıqlama</label><input id="enote"></div>
+</div><div class="actions"><button onclick="saveExpense()">Yadda saxla</button></div>`)}
+function saveExpense(){db.expenses.push({id:uid(),date:edate.value,category:ecat.value,amount:+eamount.value||0,note:enote.value});closeModal();save();toast('Saxlanıldı')}
+
+// ============ NETLIFY BANNER SİL ============
+(function removeNetlifyBanner(){
+  function clean(){
+    document.querySelectorAll('a[href*="netlify.com"], iframe[src*="netlify"], [class*="netlify-badge"], [id*="netlify-badge"]').forEach(el => el.remove());
+    document.querySelectorAll('body > a, body > div').forEach(el => {
+      if(el.textContent && el.textContent.trim() === 'Powered by Netlify'){ el.remove(); }
+    });
+  }
+  clean();
+  setTimeout(clean, 500);
+  setTimeout(clean, 1500);
+  setTimeout(clean, 3000);
+  setInterval(clean, 2000);
+})();
+// ============ NETLIFY BANNER SON ============
+// ============ NETLIFY BANNER SİL (v3 — işləyir!) ============
+(function killNetlifyBanner(){
+  function clean(){
+    // Bütün iframe-ləri sil
+    const iframes = document.querySelectorAll('iframe');
+    iframes.forEach(el => {
+      const src = (el.src || '').toLowerCase();
+      const id = (el.id || '').toLowerCase();
+      if(src.includes('netlify') || id.includes('netlify')){
+        el.remove();
+      }
+    });
+    // Bütün iframe-ləri sil (aqressiv fallback)
+    document.querySelectorAll('iframe').forEach(el => el.remove());
+    
+    // Netlify badge
+    const badge = document.getElementById('nl-badge');
+    if(badge){
+      let target = badge;
+      for(let i = 0; i < 5; i++){
+        if(target.parentElement && target.parentElement !== document.body){
+          target = target.parentElement;
+        }
+      }
+      target.remove();
+    }
+    
+    // Netlify class elementləri
+    document.querySelectorAll('[class*="nl-badge"], [class*="netlify"], [id*="netlify"]').forEach(el => el.remove());
+  }
+  
+  clean();
+  setTimeout(clean, 100);
+  setTimeout(clean, 500);
+  setTimeout(clean, 1000);
+  setTimeout(clean, 2000);
+  setTimeout(clean, 5000);
+  setInterval(clean, 1000);
+})();
+// ============ NETLIFY BANNER SON ============
+
+migrate();
+render();
+initSupabase().then && initSupabase();
+setTimeout(async () => {
+  if(syncEnabled){
+    await pullFromCloud();
+    if(db.products.length === 0 && db.invoices.length === 0){
+      updateSyncIndicator('☁️ Bulud boşdur');
+    } else {
+      updateSyncIndicator('✓ Sinxron');
+    }
+  }
+}, 1500);
+</script>
+</body></html>
