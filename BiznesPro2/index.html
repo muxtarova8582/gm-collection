@@ -155,6 +155,23 @@ a[href*="netlify.app"] {
 .side{max-width:100vw!important;overflow-x:hidden!important}
 .nav{display:flex!important;flex-wrap:wrap!important;gap:4px!important;max-width:100%!important}
 .nav button{width:auto!important;min-width:auto!important;padding:6px 8px!important;font-size:11px!important;margin:0!important}
+/* Yazı ölçüsü — Netlify kimi */
+body, button, input, select, textarea {
+  font-size: 14px !important;
+}
+.side .brand {
+  font-size: 20px !important;
+}
+.side .brand small {
+  font-size: 11px !important;
+}
+.nav button {
+  font-size: 13px !important;
+  padding: 8px 12px !important;
+}
+.top h1 {
+  font-size: 25px !important;
+}
 </style>
 </head>
 <body>
@@ -596,21 +613,7 @@ const subtitles={
 
 function renderNav(){
  const nav=document.getElementById('nav');
- let html = navs.map(n=>`<button type="button" data-page="${n[0]}" class="${page===n[0]?'active':''}">${n[1]}</button>`).join('');
- 
- if(page==='products'){
-   const s = sortState.products;
-   html += '<div class="nav-sort">'+
-     '<div class="nav-sort-title">📊 Sıralama</div>'+
-     '<button onclick="setSortField(\'products\',\'verilmeTarixi\',\'desc\')" class="'+(s.field==='verilmeTarixi'&&s.dir==='desc'?'active':'')+'">📅 Yenisi əvvəl</button>'+
-     '<button onclick="setSortField(\'products\',\'verilmeTarixi\',\'asc\')" class="'+(s.field==='verilmeTarixi'&&s.dir==='asc'?'active':'')+'">📅 Köhnəsi əvvəl</button>'+
-     '<button onclick="setSortField(\'products\',\'code\',\'asc\')" class="'+(s.field==='code'?'active':'')+'">🔤 Kod (A-Z)</button>'+
-     '<button onclick="setSortField(\'products\',\'name\',\'asc\')" class="'+(s.field==='name'?'active':'')+'">📝 Ad (A-Z)</button>'+
-     '<button onclick="setSortField(\'products\',\'növ\',\'asc\')" class="'+(s.field==='növ'?'active':'')+'">📂 Kateqoriya</button>'+
-   '</div>';
- }
- 
- nav.innerHTML = html;
+ nav.innerHTML=navs.map(n=>`<button type="button" data-page="${n[0]}" class="${page===n[0]?'active':''}">${n[1]}</button>`).join('');
  nav.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
 }
 function go(p){page=p;render()}
