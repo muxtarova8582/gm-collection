@@ -2049,5 +2049,10 @@ setTimeout(async () => {
 window.addEventListener('focus', () => {
   if(syncEnabled) pullFromCloud();
 });
+
+// Sayt görünəndə dərhal yenilə
+document.addEventListener('visibilitychange', () => {
+  if(!document.hidden && syncEnabled) pullFromCloud();
+});
 </script>
 </body></html>
