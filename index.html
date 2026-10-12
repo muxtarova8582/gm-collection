@@ -429,19 +429,7 @@ if(!isCloudEmpty && !isLocalEmpty){
   console.log('✓ Bulud dəyişməyib');
   return null;
 }
-
-      // Bulud daha yenidirsə → götür
-      if(cloudTime > lastCloudUpdate && cloudTime > localTime + 2000){ // 2 saniyə ehtiyat
-        console.log('☁️ Bulud daha yenidir — yenilənir');
-        db = cloudData;
-        ensureDbStructure();
-        localStorage.setItem(KEY, JSON.stringify(db));
-        lastCloudUpdate = cloudTime;
-        updateSyncIndicator('✓ Buluddan yeniləndi');
-        render();
-        return db;
-      }
-
+  
       // Local daha yenidirsə → buluda göndər
       if(localTime > cloudTime + 2000){
         console.log('📱 Local daha yenidir — buluda göndərilir');
