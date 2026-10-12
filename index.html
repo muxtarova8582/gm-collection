@@ -1459,10 +1459,13 @@ function addInvoiceRow(type='sale',item=null){
   const wrapId='codeWrap_'+uid();
   row.innerHTML=`
     <div class="field code-wrap" id="${wrapId}">
-      <label>Kod</label>
-      <input class="ii-code" type="text" autocomplete="off" placeholder="Kod yazın..." value="${esc(preCode)}">
-      <div class="code-dropdown" id="dd_${wrapId}"></div>
+    <label>Kod</label>
+    <div style="display:flex;gap:4px;align-items:center">
+      <input class="ii-code" type="text" autocomplete="off" placeholder="Kod yazın..." value="${esc(preCode)}" style="flex:1">
+      <button type="button" class="light" style="padding:8px 10px" onclick="scanForInvoice(this)">📷</button>
     </div>
+    <div class="code-dropdown" id="dd_${wrapId}"></div>
+  </div>
     <div class="field wide"><label>Məhsul adı</label><input class="ii-name" value="${esc(preName)}"></div>
     <div class="field"><label>Miqdar</label><input class="ii-qty" type="number" step=".001" value="${item?.qty||1}"></div>
     <div class="field"><label>Maya</label><input class="ii-maya" type="number" step=".01"></div>
@@ -2110,6 +2113,81 @@ function closeBarcodeScanner(){
   closeModal();
 }
 // ============ BARKOD SKANER SON ============
+// ============ QAİMƏ ÜÇÜN BARKOD SKANER ============
+let invoiceScanner = null;
+let invoiceScannerRow = null;
 
+function scanForInvoice(btn){
+  const row = btn.closest('.formgrid');
+  invoiceScannerRow = row;
+  
+  modal('Barkod Skaner', `
+    <div id="invoiceBarcodeReader" style="width:100%;max-width:500px;margin:0 auto"></div>
+    <p class="muted" style="text-align:center;margin-top:12px">Kameranı barkoda tutun</p>
+    <div class="actions" style="margin-top:12px">
+      <button class="danger" onclick="closeInvoiceScanner()">Bağla</button>
+    </div>
+  `);
+  
+  setTimeout(() => {
+    if(typeof Html5Qrcode === 'undefined'){
+      alert('Kamera kitabxanası yüklənmədi.');
+      return;
+    }
+    
+    invoiceScanner = new Html5Qrcode("invoiceBarcodeReader");
+    invoiceScanner.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 250, height: 150 } },
+      (decodedText) => {
+        const product = db.products.find(p => (p.code || '').toString() === decodedText.toString());
+        if(product){
+          // Məhsulu sətrə doldur
+          if(invoiceScannerRow){
+            const codeInput = invoiceScannerRow.querySelector('.ii-code');
+            const nameInput = invoiceScannerRow.querySelector('.ii-name');
+            const mayaInput = invoiceScannerRow.querySelector('.ii-maya');
+            const alisInput = invoiceScannerRow.querySelector('.ii-alis');
+            const salePriceInput = invoiceScannerRow.querySelector('.ii-sale-price');
+            const novInput = invoiceScannerRow.querySelector('.ii-nov');
+            const hiddenPid = invoiceScannerRow.querySelector('.ii-product');
+            const dateInput = invoiceScannerRow.querySelector('.ii-date');
+            
+            if(codeInput) codeInput.value = product.code || '';
+            if(nameInput) nameInput.value = product.name || '';
+            if(mayaInput) mayaInput.value = product.maya != null ? product.maya : (product.cost || 0);
+            if(alisInput) alisInput.value = product.alis != null ? product.alis : (product.cost || 0);
+            if(salePriceInput) salePriceInput.value = product.price || 0;
+            if(novInput) novInput.value = product.növ || product.nov || '';
+            if(hiddenPid) hiddenPid.value = product.id;
+            if(dateInput && !dateInput.value){
+              const gd = document.getElementById('ideliveryDate');
+              dateInput.value = gd?.value || product.verilmeTarixi || '';
+            }
+          }
+          toast('✅ Tapıldı: ' + product.name);
+          closeInvoiceScanner();
+        } else {
+          toast('❌ Tapılmadı: ' + decodedText, 'bad');
+        }
+      },
+      (err) => {}
+    ).catch(err => {
+      alert('Kamera açılmadı.');
+    });
+  }, 300);
+}
+
+function closeInvoiceScanner(){
+  if(invoiceScanner){
+    invoiceScanner.stop().then(() => {
+      invoiceScanner.clear();
+      invoiceScanner = null;
+      invoiceScannerRow = null;
+    }).catch(err => console.warn(err));
+  }
+  closeModal();
+}
+// ============ QAİMƏ BARKOD SON ============
 </script>
 </body></html>
