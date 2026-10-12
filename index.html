@@ -414,9 +414,21 @@ async function pullFromCloud(showAlert = false){
       return db;
     }
 
-    // Vəziyyət 3: Hər ikisi dolu → hansı daha yenidirsə onu götür
-    if(!isCloudEmpty && !isLocalEmpty){
-      const localTime = localData._lastModified || 0;
+ // VƏZİYYƏT 3: HƏR İKİSİ DOLU — bulud üstünlük təşkil edir
+if(!isCloudEmpty && !isLocalEmpty){
+  if(cloudTime > lastCloudUpdate){
+    console.log('☁️ Buluddan yüklənir');
+    db = cloudData;
+    ensureDbStructure();
+    localStorage.setItem(KEY, JSON.stringify(db));
+    lastCloudUpdate = cloudTime;
+    updateSyncIndicator('✓ Buluddan yeniləndi');
+    render();
+    return db;
+  }
+  console.log('✓ Bulud dəyişməyib');
+  return null;
+}
 
       // Bulud daha yenidirsə → götür
       if(cloudTime > lastCloudUpdate && cloudTime > localTime + 2000){ // 2 saniyə ehtiyat
