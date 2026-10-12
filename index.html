@@ -429,19 +429,6 @@ if(!isCloudEmpty && !isLocalEmpty){
   console.log('✓ Bulud dəyişməyib');
   return null;
 }
-  
-      // Local daha yenidirsə → buluda göndər
-      if(localTime > cloudTime + 2000){
-        console.log('📱 Local daha yenidir — buluda göndərilir');
-        db = localData;
-        ensureDbStructure();
-        await pushToCloud();
-        return db;
-      }
-
-      // Eyni vəziyyətdədirsə heç nə etmə
-      return null;
-    }
 
     return null;
   } catch(e){
