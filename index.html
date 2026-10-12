@@ -472,9 +472,9 @@ async function syncNow(){
 }
 
 // Hər 8 saniyədə yoxla
-setInterval(() => { 
-  if(syncEnabled && !syncInProgress) pullFromCloud(); 
-}, 8000);
+setInterval(() => {
+  if(syncEnabled && !document.hidden && !syncInProgress) pullFromCloud();
+}, 3000);
 
 // İnternet qayıdanda
 window.addEventListener('online', () => { 
@@ -2045,5 +2045,9 @@ setTimeout(async () => {
     }
   }
 }, 1500);
+// Pəncərə fokuslananda dərhal yenilə
+window.addEventListener('focus', () => {
+  if(syncEnabled) pullFromCloud();
+});
 </script>
 </body></html>
