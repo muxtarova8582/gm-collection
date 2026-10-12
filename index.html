@@ -16,6 +16,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
 /* Mobil overflow problemi */
 html, body {
@@ -774,6 +775,7 @@ function products(){
   return '<div class="panel">'+
     '<div class="toolbar">'+
     '<button onclick="productForm()">+ Məhsul</button> '+
+    '<button class="success" onclick="openBarcodeScanner()">📷 Barkod</button> '+
     '<button class="success" onclick="document.getElementById(\'importExcel\').click()">📤 Excel idxal</button> '+
     '<input id="importExcel" type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importProductsExcel(this)"> '+
     '<input id="ps" placeholder="Axtar..." oninput="filterProducts()"> '+
@@ -2054,5 +2056,60 @@ window.addEventListener('focus', () => {
 document.addEventListener('visibilitychange', () => {
   if(!document.hidden && syncEnabled) pullFromCloud();
 });
+
+// ============ BARKOD SKANER ============
+let html5QrCode = null;
+
+function openBarcodeScanner(){
+  modal('Barkod Skaner', `
+    <div id="barcodeReader" style="width:100%;max-width:500px;margin:0 auto"></div>
+    <p class="muted" style="text-align:center;margin-top:12px">Kameranı barkoda tutun</p>
+    <div class="actions" style="margin-top:12px">
+      <button class="danger" onclick="closeBarcodeScanner()">Bağla</button>
+    </div>
+  `);
+  
+  setTimeout(() => {
+    if(typeof Html5Qrcode === 'undefined'){
+      alert('Kamera kitabxanası yüklənmədi.');
+      return;
+    }
+    
+    html5QrCode = new Html5Qrcode("barcodeReader");
+    html5QrCode.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 250, height: 150 } },
+      (decodedText) => {
+        const product = db.products.find(p => (p.code || '').toString() === decodedText.toString());
+        if(product){
+          toast('✅ Tapıldı: ' + product.name);
+          closeBarcodeScanner();
+          go('products');
+          setTimeout(() => {
+            const ps = document.getElementById('ps');
+            if(ps){ ps.value = product.code; filterProducts(); }
+          }, 100);
+        } else {
+          toast('❌ Tapılmadı: ' + decodedText, 'bad');
+        }
+      },
+      (err) => {}
+    ).catch(err => {
+      alert('Kamera açılmadı.');
+    });
+  }, 300);
+}
+
+function closeBarcodeScanner(){
+  if(html5QrCode){
+    html5QrCode.stop().then(() => {
+      html5QrCode.clear();
+      html5QrCode = null;
+    }).catch(err => console.warn(err));
+  }
+  closeModal();
+}
+// ============ BARKOD SKANER SON ============
+
 </script>
 </body></html>
