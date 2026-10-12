@@ -2064,13 +2064,7 @@ document.addEventListener('visibilitychange', () => {
 let html5QrCode = null;
 
 function openBarcodeScanner(){
-  modal('Barkod Skaner', `
-    <div id="barcodeReader" style="width:100%;max-width:500px;margin:0 auto"></div>
-    <p class="muted" style="text-align:center;margin-top:12px">Kameranı barkoda tutun</p>
-    <div class="actions" style="margin-top:12px">
-      <button class="danger" onclick="closeBarcodeScanner()">Bağla</button>
-    </div>
-  `);
+  document.getElementById('barcodeModal').classList.add('show');
   
   setTimeout(() => {
     if(typeof Html5Qrcode === 'undefined'){
@@ -2078,28 +2072,26 @@ function openBarcodeScanner(){
       return;
     }
     
-    html5QrCode = new Html5Qrcode("barcodeReader");
-    html5QrCode.start(
+    invoiceScanner = new Html5Qrcode("barcodeModalReader");
+    invoiceScanner.start(
       { facingMode: "environment" },
       { fps: 10, qrbox: { width: 250, height: 150 } },
       (decodedText) => {
         const product = db.products.find(p => (p.code || '').toString() === decodedText.toString());
         if(product){
-          toast('✅ Tapıldı: ' + product.name);
-          closeBarcodeScanner();
+          closeBarcodeModal();
           go('products');
           setTimeout(() => {
             const ps = document.getElementById('ps');
             if(ps){ ps.value = product.code; filterProducts(); }
-          }, 100);
+            toast('✅ Tapıldı: ' + product.name);
+          }, 300);
         } else {
           toast('❌ Tapılmadı: ' + decodedText, 'bad');
         }
       },
       (err) => {}
-    ).catch(err => {
-      alert('Kamera açılmadı.');
-    });
+    ).catch(err => alert('Kamera xətası: ' + err));
   }, 300);
 }
 
