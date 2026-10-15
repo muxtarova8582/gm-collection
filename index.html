@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="az">
 <head>
@@ -1052,11 +1053,46 @@ function payments(){
     <button onclick="paymentForm()">+ Ödəniş</button>
     <button class="light" onclick="exportCSV('payments')">CSV</button>
   </div><div class="tablewrap"><table class="table"><thead><tr>
-    <th>Tarix</th><th>Növ</th><th>Tərəf</th><th>Məbləğ</th><th>Üsul</th>
+    <th>Tarix</th><th>Növ</th><th>Tərəf</th><th>Məbləğ</th><th>Üsul</th><th>Əməliyyat</th>
   </tr></thead><tbody>${db.payments.slice().reverse().map(p=>`<tr>
     <td>${p.date}</td><td>${p.type==='customer'?'Müştəri':'Təchizatçı'}</td>
     <td>${esc(p.partyName)}</td><td>${money(p.amount)}</td><td>${esc(p.method)}</td>
-  </tr>`).join('')||'<tr><td colspan="5">Məlumat yoxdur</td></tr>'}</tbody></table></div></div>`;
+    <td>
+      <button class="light" onclick="editPayment('${p.id}')">Düzəlt</button>
+      <button class="danger" onclick="deletePayment('${p.id}')">Sil</button>
+    </td>
+  </tr>`).join('')||'<tr><td colspan="6">Məlumat yoxdur</td></tr>'}</tbody></table></div></div>`;
+}
+
+function editPayment(id){
+  const p = db.payments.find(x => x.id === id);
+  if(!p) return;
+  window.__editingPaymentId = id;
+  modal('Ödənişi Düzəlt', `<div class="formgrid">
+    <div class="field"><label>Tarix</label><input id="paydate" type="date" value="${p.date}"></div>
+    <div class="field"><label>Növ</label><select id="paytype" onchange="fillPayParty()">
+      <option value="customer" ${p.type==='customer'?'selected':''}>Müştəri ödənişi</option>
+      <option value="supplier" ${p.type==='supplier'?'selected':''}>Təchizatçı ödənişi</option>
+    </select></div>
+    <div class="field wide"><label>Tərəf</label><select id="payparty"></select></div>
+    <div class="field"><label>Məbləğ</label><input id="payamount" type="number" step=".01" value="${p.amount}"></div>
+    <div class="field"><label>Üsul</label><select id="paymethod">
+      <option ${p.method==='Nağd'?'selected':''}>Nağd</option>
+      <option ${p.method==='Bank'?'selected':''}>Bank</option>
+      <option ${p.method==='Kart'?'selected':''}>Kart</option>
+    </select></div>
+  </div><div class="actions"><button onclick="savePayment()">Yadda saxla</button></div>`);
+  fillPayParty();
+  setTimeout(() => { document.getElementById('payparty').value = p.partyId; }, 0);
+}
+
+function deletePayment(id){
+  const p = db.payments.find(x => x.id === id);
+  if(!p) return;
+  if(!confirm(`Ödəniş silinsin?\n${p.date} — ${p.partyName} — ${money(p.amount)}`)) return;
+  db.payments = db.payments.filter(x => x.id !== id);
+  save();
+  toast('Ödəniş silindi');
 }
 function cash(){
   let ins=sum(db.cash.filter(x=>x.type==='in'),x=>x.amount);
