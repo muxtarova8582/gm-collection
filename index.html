@@ -416,9 +416,20 @@ async function pullFromCloud(showAlert = false){
       return db;
     }
 
- // VƏZİYYƏT 3: HƏR İKİSİ DOLU — bulud üstünlük təşkil edir
+ // VƏZİYYƏT 3: HƏR İKİSİ DOLU
+// Bulud ən azı localStorage qədər məlumat saxlayırsa → buluddan götür
 if(!isCloudEmpty && !isLocalEmpty){
-  if(cloudTime > lastCloudUpdate){
+  const cloudInv = (cloudData.invoices||[]).length;
+  const localInv = (localData.invoices||[]).length;
+  const cloudPay = (cloudData.payments||[]).length;
+  const localPay = (localData.payments||[]).length;
+  const cloudCus = (cloudData.customers||[]).length;
+  const localCus = (localData.customers||[]).length;
+  
+  // Bulud daha çox və ya bərabər məlumat saxlayırsa → götür
+  const cloudHasMore = cloudInv >= localInv && cloudPay >= localPay && cloudCus >= localCus;
+  
+  if(cloudTime > lastCloudUpdate && cloudHasMore){
     console.log('☁️ Buluddan yüklənir');
     db = cloudData;
     ensureDbStructure();
@@ -428,16 +439,20 @@ if(!isCloudEmpty && !isLocalEmpty){
     render();
     return db;
   }
+  
+  // Local daha çox məlumat saxlayırsa → buluda göndər
+  if(!cloudHasMore){
+    console.log('📤 Local daha çoxdur — buluda göndərilir');
+    db = localData;
+    ensureDbStructure();
+    await pushToCloud();
+    updateSyncIndicator('✓ Buluda göndərildi');
+    render();
+    return db;
+  }
+  
   console.log('✓ Bulud dəyişməyib');
   return null;
-}
-
-    return null;
-  } catch(e){
-    console.warn('Pull xətası:', e);
-    if(showAlert) updateSyncIndicator('⚠ Xəta', true);
-    return null;
-  }
 }
 
 function ensureDbStructure(){
