@@ -453,8 +453,15 @@ if(!isCloudEmpty && !isLocalEmpty){
   
   console.log('✓ Bulud dəyişməyib');
   return null;
-}
+  }
 
+  return null;
+  } catch(e){
+    console.warn('Pull xətası:', e);
+    if(showAlert) updateSyncIndicator('⚠ Xəta', true);
+    return null;
+  }
+}
 function ensureDbStructure(){
   if(!db.actualStock) db.actualStock = {};
   if(!db.stockLog) db.stockLog = [];
