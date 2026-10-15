@@ -2001,7 +2001,34 @@ function paymentForm(){modal('Ödəniş',`<div class="formgrid">
   <div class="field"><label>Üsul</label><select id="paymethod"><option>Nağd</option><option>Bank</option><option>Kart</option></select></div>
 </div><div class="actions"><button onclick="savePayment()">Yadda saxla</button></div>`);fillPayParty()}
 function fillPayParty(){let t=document.getElementById('paytype').value,a=t==='customer'?db.customers:db.suppliers;document.getElementById('payparty').innerHTML=a.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}
-function savePayment(){let t=paytype.value,a=t==='customer'?db.customers:db.suppliers,p=a.find(x=>x.id===payparty.value);if(!p){toast('Tərəf yoxdur','bad');return}db.payments.push({id:uid(),date:paydate.value,type:t,partyId:p.id,partyName:p.name,amount:+payamount.value||0,method:paymethod.value});closeModal();save();toast('Ödəniş saxlanıldı')}
+function savePayment(){
+  let t=paytype.value;
+  let a=t==='customer'?db.customers:db.suppliers;
+  let p=a.find(x=>x.id===payparty.value);
+  if(!p){toast('Tərəf yoxdur','bad');return}
+  
+  const editingId = window.__editingPaymentId;
+  
+  if(editingId){
+    const existing = db.payments.find(x=>x.id===editingId);
+    if(existing){
+      existing.date = paydate.value;
+      existing.type = t;
+      existing.partyId = p.id;
+      existing.partyName = p.name;
+      existing.amount = +payamount.value||0;
+      existing.method = paymethod.value;
+    }
+    window.__editingPaymentId = null;
+    closeModal();save();toast('Ödəniş düzəldildi');
+  } else {
+    db.payments.push({
+      id:uid(),date:paydate.value,type:t,partyId:p.id,
+      partyName:p.name,amount:+payamount.value||0,method:paymethod.value
+    });
+    closeModal();save();toast('Ödəniş saxlanıldı');
+  }
+}
 function cashForm(){modal('Kassa',`<div class="formgrid">
   <div class="field"><label>Tarix</label><input id="cdate" type="date" value="${dateNow()}"></div>
   <div class="field"><label>Növ</label><select id="ctype"><option value="in">Giriş</option><option value="out">Çıxış</option></select></div>
