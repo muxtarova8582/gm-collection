@@ -2211,7 +2211,8 @@ function scanForInvoice(btn){
           }
           toast('✅ ' + product.name);
           closeBarcodeModal();
-      } else {
+      } 
+    else {
   const allRows = [...document.querySelectorAll('#invoiceItems .formgrid')];
   const targetRow = allRows[invoiceScannerRowIndex];
   if(targetRow){
