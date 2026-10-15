@@ -2211,9 +2211,16 @@ function scanForInvoice(btn){
           }
           toast('✅ ' + product.name);
           closeBarcodeModal();
-        } else {
-          toast('❌ Tapılmadı', 'bad');
-        }
+      } else {
+  const allRows = [...document.querySelectorAll('#invoiceItems .formgrid')];
+  const targetRow = allRows[invoiceScannerRowIndex];
+  if(targetRow){
+    targetRow.querySelector('.ii-code').value = decodedText;
+    targetRow.querySelector('.ii-name').value = decodedText;
+    targetRow.querySelector('.ii-product').value = '';
+  }
+  toast('🆕 Yeni məhsul: ' + decodedText, 'warn');
+  closeBarcodeModal();
       },
       (err) => {}
     );
