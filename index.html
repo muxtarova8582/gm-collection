@@ -2197,9 +2197,11 @@ function scanForInvoice(btn){
       { fps: 10, qrbox: { width: 250, height: 150 } },
       (decodedText) => {
         const product = db.products.find(p => (p.code || '').toString() === decodedText.toString());
+        
         if(product){
           const allRows = [...document.querySelectorAll('#invoiceItems .formgrid')];
           const targetRow = allRows[invoiceScannerRowIndex];
+          
           if(targetRow){
             targetRow.querySelector('.ii-code').value = product.code || '';
             targetRow.querySelector('.ii-name').value = product.name || '';
@@ -2209,24 +2211,27 @@ function scanForInvoice(btn){
             targetRow.querySelector('.ii-nov').value = product.növ || product.nov || '';
             targetRow.querySelector('.ii-product').value = product.id;
           }
-          toast('✅ ' + product.name);
+          
+          toast('✅ Tapıldı: ' + product.name);
           closeBarcodeModal();
-      } else {
-  const allRows = [...document.querySelectorAll('#invoiceItems .formgrid')];
-  const targetRow = allRows[invoiceScannerRowIndex];
-  if(targetRow){
-    targetRow.querySelector('.ii-code').value = decodedText;
-    targetRow.querySelector('.ii-name').value = decodedText;
-    targetRow.querySelector('.ii-product').value = '';
-  }
-  toast('🆕 Yeni məhsul: ' + decodedText, 'warn');
-  closeBarcodeModal();
+        } else {
+          const allRows = [...document.querySelectorAll('#invoiceItems .formgrid')];
+          const targetRow = allRows[invoiceScannerRowIndex];
+          
+          if(targetRow){
+            targetRow.querySelector('.ii-code').value = decodedText;
+            targetRow.querySelector('.ii-name').value = decodedText;
+            targetRow.querySelector('.ii-product').value = '';
+          }
+          
+          toast('🆕 Yeni məhsul: ' + decodedText, 'warn');
+          closeBarcodeModal();
+        }
       },
       (err) => {}
     );
   }, 300);
 }
-
 function closeBarcodeModal(){
   if(invoiceScanner){
     invoiceScanner.stop().then(() => {
