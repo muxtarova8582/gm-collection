@@ -496,8 +496,20 @@ async function syncNow(){
 }
 
 // Hər 10 saniyədə yoxla
-setInterval(() => {
-  if(syncEnabled && !document.hidden && !syncInProgress) pullFromCloud();
+setInterval(() => { 
+  if(syncEnabled && !document.hidden && !syncInProgress) {
+    // Cari scroll vəziyyətini yadda saxla
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    const tableScrollLeft = document.querySelector('.tablewrap')?.scrollLeft || 0;
+    
+    pullFromCloud().then(() => {
+      // Scroll-u bərpa et
+      window.scrollTo(scrollX, scrollY);
+      const tw = document.querySelector('.tablewrap');
+      if(tw) tw.scrollLeft = tableScrollLeft;
+    });
+  }
 }, 3000);
 
 // İnternet qayıdanda
