@@ -699,7 +699,7 @@ function renderDashboardCharts(){
 /* ============ INVOICES ============ */
 function invoiceTable(arr){
  return `<div class="tablewrap"><table class="table"><thead><tr>
-   <th>Qaimə</th><th>Tarix</th><th>Növ</th><th>Tərəf</th><th>Mal sayı</th><th>Məbləğ</th><th>Maya</th><th>Marja</th><th>Əməliyyat</th>
+   <th>Qaimə</th><th>Tarix</th><th>Növ</th><th>Tərəf</th><th>Mal sayı</th><th>Məbləğ</th><th>Əməliyyat</th>
  </tr></thead><tbody>${arr.map(i=>{
    const cogs=sum(i.items||[],x=>{const p=db.products.find(z=>z.id===x.productId);return x.qty*(p?costOf(p):0)});
    const total=invTotal(i);
