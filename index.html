@@ -701,11 +701,8 @@ function invoiceTable(arr){
  return `<div class="tablewrap"><table class="table"><thead><tr>
    <th>Qaimə</th><th>Tarix</th><th>Növ</th><th>Tərəf</th><th>Mal sayı</th><th>Məbləğ</th><th>Əməliyyat</th>
  </tr></thead><tbody>${arr.map(i=>{
-   const cogs=sum(i.items||[],x=>{const p=db.products.find(z=>z.id===x.productId);return x.qty*(p?costOf(p):0)});
    const total=invTotal(i);
    const totalQty = sum(i.items||[], x => Number(x.qty)||0);
-   const margin=i.type==='sale'?total-cogs:0;
-   const marginPct=total>0?(margin/total*100):0;
    return `<tr>
    <td>${esc(i.no)}</td>
    <td>${i.date}</td>
@@ -713,8 +710,6 @@ function invoiceTable(arr){
    <td>${esc(i.partyName||'-')}</td>
    <td><b>${totalQty}</b> ədəd</td>
    <td>${money(total)}</td>
-   <td>${i.type==='sale'?money(cogs):'-'}</td>
-   <td>${i.type==='sale'?`<span class="${margin>=0?'green':'red'}">${money(margin)} (${marginPct.toFixed(1)}%)</span>`:'-'}</td>
    <td>
      <button class="light" onclick="printInvoice('${i.id}')">🖨</button>
      <button class="light" onclick="shareWhatsApp('${i.id}')">📱</button>
@@ -722,9 +717,8 @@ function invoiceTable(arr){
      <button class="danger" onclick="deleteInvoice('${i.id}')">Sil</button>
    </td>
  </tr>`;
- }).join('')||'<tr><td colspan="9">Məlumat yoxdur</td></tr>'}</tbody></table></div>`;
+ }).join('')||'<tr><td colspan="7">Məlumat yoxdur</td></tr>'}</tbody></table></div>`;
 }
-
 function productTable(arr){
   const s = sortState.products;
   arr = sortData(arr, s.field, s.dir);
