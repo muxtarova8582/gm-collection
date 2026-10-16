@@ -810,6 +810,8 @@ function products(){
     '<button class="success" onclick="document.getElementById(\'importExcel\').click()">📤 Excel idxal</button> '+
     '<input id="importExcel" type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importProductsExcel(this)"> '+
     '<input id="ps" placeholder="Axtar..." oninput="filterProducts()"> '+
+'<input id="pdate1" type="date" placeholder="Başlanğıc" onchange="filterProducts()"> '+
+'<input id="pdate2" type="date" placeholder="Son" onchange="filterProducts()"> '+
     '<button class="light" onclick="exportCSV(\'products\')">CSV ixrac</button> '+
     '<button class="light" onclick="exportProductsExcel()">📊 Excel ixrac</button> '+
     '<select class="sort-dropdown" onchange="setSortField(\'products\', this.value, sortState.products.dir)">'+
@@ -826,9 +828,20 @@ function products(){
 }
 function filterProducts(){
  let q=document.getElementById('ps').value.toLowerCase().trim();
+ const d1 = document.getElementById('pdate1')?.value || '';
+ const d2 = document.getElementById('pdate2')?.value || '';
+ 
  document.getElementById('productList').innerHTML=productTable(db.products.filter(p=>{
+  // Axtarış filtri
   const t=(p.name+' '+p.code+' '+(p.növ||'')+' '+(p.nov||'')).toLowerCase();
-  return t.includes(q);
+  if(q && !t.includes(q)) return false;
+  
+  // Tarix filtri
+  const pd = p.verilmeTarixi || '';
+  if(d1 && pd < d1) return false;
+  if(d2 && pd > d2) return false;
+  
+  return true;
  }));
 }
 
